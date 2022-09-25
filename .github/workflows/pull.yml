@@ -1,0 +1,50 @@
+name: pull from hatena blog
+
+on: 
+  issues:
+    types: [closed]
+
+jobs:
+  tag:
+    name: pull
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.issue.title, 'Pull:')
+    steps:
+
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+
+    - uses: actions/cache@v1
+      with:
+        path: ~/go/bin/
+        key: ${{ runner.os }}-go-blogsync-200423.0756
+        restore-keys: |
+          ${{ runner.os }}-go-blogsync-200423.0756
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
+        
+    - run: |
+        git fetch origin main
+    - name: Setup blogsync
+      env:
+        BSY: ${{ secrets.BSY }}
+      run: |
+        if !(type ~/go/bin/blogsync > /dev/null 2>&1); then
+          go get github.com/x-motemen/blogsync;
+        fi
+        echo -e ${BSY} > blogsync.yaml
+    - name: pull
+      env:
+        DOMAIN: ${{ secrets.DOMAIN }}
+      run: |
+        ~/go/bin/blogsync pull ${DOMAIN}
+    - name: push to repository
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git commit -m "generated from ${{ github.event.issue.html_url }}"
+        git push

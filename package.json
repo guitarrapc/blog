@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "post": "scripts/post.sh $npm_config_path",
+    "pull": "scripts/pull.sh"
+  }
+}
