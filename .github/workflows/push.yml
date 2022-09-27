@@ -27,17 +27,19 @@ jobs:
       - name: fetch main and PR merged ref
         run: |
           git fetch origin main
-          git fetch origin ${{ github.event.pull_request.head.ref }}
-          echo "MAIN_SHA=$(git rev-parse origin/main~)" >> $GITHUB_ENV
+          git fetch origin "${HEAD_REF}"
+          echo "MAIN_SHA=$(git rev-parse origin/main~)" >> "$GITHUB_ENV"
           :
-      - name: Setup blogsync
         env:
-          BSY: ${{ secrets.BSY }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      - name: Setup blogsync
         run: |
-          if !(type ~/go/bin/blogsync > /dev/null 2>&1); then
+          if ! (type ~/go/bin/blogsync > /dev/null 2>&1); then
             go get github.com/x-motemen/blogsync;
           fi
-          echo -e ${BSY} > blogsync.yaml
+          echo -e "${BSY}" > blogsync.yaml
+        env:
+          BSY: ${{ secrets.BSY }}
       - name: blogsync push
         env:
           DOMAIN: ${{ secrets.DOMAIN }}

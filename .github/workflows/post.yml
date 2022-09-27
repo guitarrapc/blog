@@ -23,21 +23,22 @@ jobs:
       - name: fetch main
         run: git fetch origin main
       - name: Setup blogsync
-        env:
-          BSY: ${{ secrets.BSY }}
         run: |
-          if !(type ~/go/bin/blogsync > /dev/null 2>&1); then
+          if ! (type ~/go/bin/blogsync > /dev/null 2>&1); then
             go get github.com/x-motemen/blogsync;
           fi
-          echo -e ${BSY} > blogsync.yaml
-      - name: blogsync post
+          echo -e "${BSY}" > blogsync.yaml
         env:
-          DOMAIN: ${{ secrets.DOMAIN }}
+          BSY: ${{ secrets.BSY }}
+      - name: blogsync post
         run: |
-          echo '${{github.event.issue.body}}' \
+          echo '${{ env.BODY }}' \
           | grep '^path:' \
           | sed -e "s/path:\(.*\)[ \f\n\r\t]/\1/g" \
           | xargs -t -n1 -I{} ~/go/bin/blogsync post --title=draft --draft --custom-path={} ${{ secrets.DOMAIN }} ""
+        env:
+          BODY: ${{ github.event.issue.body }}
+          DOMAIN: ${{ secrets.DOMAIN }}
       - name: push to repository
         run: |
           git config user.name github-actions[bot]

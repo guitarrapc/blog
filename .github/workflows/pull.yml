@@ -23,18 +23,17 @@ jobs:
       - name: fetch main
         run: git fetch origin main
       - name: Setup blogsync
-        env:
-          BSY: ${{ secrets.BSY }}
         run: |
-          if !(type ~/go/bin/blogsync > /dev/null 2>&1); then
+          if ! (type ~/go/bin/blogsync > /dev/null 2>&1); then
             go get github.com/x-motemen/blogsync;
           fi
-          echo -e ${BSY} > blogsync.yaml
+          echo -e "${BSY}" > blogsync.yaml
+        env:
+          BSY: ${{ secrets.BSY }}
       - name: blogsync pull
+        run: ~/go/bin/blogsync pull "${DOMAIN}"
         env:
           DOMAIN: ${{ secrets.DOMAIN }}
-        run: |
-          ~/go/bin/blogsync pull ${DOMAIN}
       - name: push to repository
         run: |
           git config user.name github-actions[bot]
