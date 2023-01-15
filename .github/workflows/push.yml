@@ -1,4 +1,4 @@
-ame: push to hatena blog
+name: push to hatena blog
 
 on:
   pull_request:
