@@ -44,4 +44,4 @@ jobs:
           git commit -m "[auto commit] generated from ${{ github.event_name == 'issue' && github.event.issue.html_url || env.WORKFLOW_URL }}"
           git push
         env:
-          WORKFLOW_URL: "https://github.com/${{ env.GITHUB_REPOSITORY }}/actions/runs/${{ env/.GITHUB_RUN_ID }}"
+          WORKFLOW_URL: "https://github.com/${{ env.GITHUB_REPOSITORY }}/actions/runs/${{ env.GITHUB_RUN_ID }}"
