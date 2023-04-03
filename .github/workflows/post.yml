@@ -1,13 +1,12 @@
 name: post to hatena blog
 
 on:
-  workflow_dispatch:
   issues:
     types: [closed]
 
 jobs:
   post:
-    if: ${{ startsWith(github.event.issue.title, 'Post:') || github.event_name == 'workflow_dispatch' }}
+    if: ${{ startsWith(github.event.issue.title, 'Post:') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -40,8 +39,5 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add .
-          git commit -m "[auto commit] generated from ${{ github.event_name == 'issue' && github.event.issue.html_url || env.WORKFLOW_URL }}"
+          git commit -m "[auto commit] generated from ${{ github.event.issue.html_url }}"
           git push
-        env:
-          WORKFLOW_URL: "https://github.com/${{ env.GITHUB_REPOSITORY }}/actions/runs/${{ env.GITHUB_RUN_ID }}"
