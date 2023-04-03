@@ -7,48 +7,32 @@ on:
     types: [closed]
 
 jobs:
-  tag:
-    name: push
+  push:
+    if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    timeout-minutes: 10
     steps:
-      - name: Set up Go 1.19.4
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19.4
-        id: go
-
-      - uses: actions/cache@v3
-        with:
-          path: ~/go/bin/
-          key: ${{ runner.os }}-go-blogsync-200423.0756
-          restore-keys: |
-            ${{ runner.os }}-go-blogsync-200423.0756
+      - name: Setup Go
+        uses: ./.github/actions/setup-go
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
         with:
           fetch-depth: 3
-
       - run: |
           git fetch origin main
-          git fetch origin ${{github.event.pull_request.head.ref}}
-          echo "MAIN_SHA=$(git rev-parse origin/main~)" >> $GITHUB_ENV
-          :
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          echo "MAIN_SHA=$(git rev-parse origin/main~)" | tee -a $GITHUB_ENV
       - name: Setup blogsync
-        env:
-          BSY: ${{ secrets.BSY }}
-        run: |
-          if !(type ~/go/bin/blogsync > /dev/null 2>&1); then
-            go install github.com/x-motemen/blogsync@latest;
-          fi
-          echo -e ${BSY} > blogsync.yaml
-      - name: push
-        env:
-          DOMAIN: ${{ secrets.DOMAIN }}
+        uses: ./.github/actions/setup-blogsync
+        with:
+          bsy: ${{ secrets.BSY }}
+      - name: push blog
         run: |
           git diff --name-only ${{env.MAIN_SHA}} ${{github.event.pull_request.head.sha}} -- \
-          | grep "^${{ secrets.DOMAIN }}" \
+          | grep "^${{ env.DOMAIN }}" \
           | xargs -t -n1 ~/go/bin/blogsync push
+        env:
+          DOMAIN: ${{ secrets.DOMAIN }}
     # - name: notify to slack
     #   uses: mm0202/action_slack-notify@master
     #   if: always()

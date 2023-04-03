@@ -1,52 +1,47 @@
 name: post to hatena blog
 
 on:
+  workflow_dispatch:
   issues:
     types: [closed]
 
 jobs:
-  tag:
-    name: post
+  post:
+    if: ${{ startsWith(github.event.issue.title, 'Post:') || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    if: startsWith(github.event.issue.title, 'Post:')
+    timeout-minutes: 10
     steps:
-      - name: Set up Go 1.19.4
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19.4
-        id: go
-
-      - uses: actions/cache@v3
-        with:
-          path: ~/go/bin/
-          key: ${{ runner.os }}-go-blogsync-200423.0756
-          restore-keys: |
-            ${{ runner.os }}-go-blogsync-200423.0756
+      - name: Setup Go
+        uses: ./.github/actions/setup-go
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
-
-      - run: |
-          git fetch origin main
       - name: Setup blogsync
-        env:
-          BSY: ${{ secrets.BSY }}
-        run: |
-          if !(type ~/go/bin/blogsync > /dev/null 2>&1); then
-            go install github.com/x-motemen/blogsync@latest;
-          fi
-          echo -e ${BSY} > blogsync.yaml
+        uses: ./.github/actions/setup-blogsync
+        with:
+          bsy: ${{ secrets.BSY }}
       - name: post
-        env:
-          DOMAIN: ${{ secrets.DOMAIN }}
         run: |
-          echo '${{github.event.issue.body}}' \
+          echo '${{ github.event.issue.body }}' \
           | grep '^path:' \
           | sed -e "s/path:\(.*\)[ \f\n\r\t]/\1/g" \
-          | xargs -t -n1 -I{} ~/go/bin/blogsync post --title=draft --draft --custom-path={} ${{ secrets.DOMAIN }} ""
-      - name: push to repository
+          | xargs -t -n1 -I{} ~/go/bin/blogsync post --title=draft --draft --custom-path={} ${{ env.DOMAIN }} ""
+        env:
+          DOMAIN: ${{ secrets.DOMAIN }}
+
+      # git push
+      - name: git diff
+        id: diff
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git add -N .
+          git diff --name-only --exit-code
+        continue-on-error: true
+      - if: steps.diff.outcome == 'failure'
+        name: git push
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add .
-          git commit -m "generated from ${{ github.event.issue.html_url }}"
+          git commit -m "[auto commit] generated from ${{ github.event_name == 'issue' ? github.event.issue.html_url : env.WORKFLOW_URL }}"
           git push
+        env:
+          WORKFLOW_URL: "https://github.com/${{ env.GITHUB_REPOSITORY }}/actions/runs/${{ env/.GITHUB_RUN_ID }}"

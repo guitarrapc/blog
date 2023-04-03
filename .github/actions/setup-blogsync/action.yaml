@@ -1,0 +1,22 @@
+name: Setup Go
+description: Setup Go runtime
+inputs:
+  blogsync-version:
+    description: "blogsync version to setup"
+    required: false
+    default: latest
+  bsy:
+    description: blog sync setting yaml.
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Setup blogsync
+      shell: bash
+      run: |
+        if !(type ~/go/bin/blogsync > /dev/null 2>&1); then
+          go install github.com/x-motemen/blogsync@${{ inputs.blogsync-version }};
+        fi
+        echo -e ${BSY} > blogsync.yaml
+      env:
+        BSY: ${{ inputs.bsy }}
