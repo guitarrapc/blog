@@ -26,18 +26,10 @@ jobs:
           | xargs -t -n1 -I{} ~/go/bin/blogsync post --title=draft --draft --custom-path={} ${{ env.DOMAIN }} ""
         env:
           DOMAIN: ${{ secrets.DOMAIN }}
-
-      # git push
-      - name: git diff
-        id: diff
-        run: |
-          git add -N .
-          git diff --name-only --exit-code
-        continue-on-error: true
-      - if: steps.diff.outcome == 'failure'
-        name: git push
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git commit -m "[auto commit] generated from ${{ github.event.issue.html_url }}"
-          git push
+      - name: Git Commit & Push
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+          author_email: 41898282+github-actions[bot]@users.noreply.github.com
+          message: "[auto commit] post new draft via ${{ github.event.issue.html_url }}"

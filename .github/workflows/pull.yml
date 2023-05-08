@@ -31,6 +31,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
           author_email: 41898282+github-actions[bot]@users.noreply.github.com
-          message: "[auto commit] generated from ${{ github.event_name == 'issue' && github.event.issue.html_url || env.WORKFLOW_URL }}"
+          message: "[auto commit] pull all post from hatenablog via ${{ github.event_name == 'issue' && github.event.issue.html_url || env.WORKFLOW_URL }}"
         env:
           WORKFLOW_URL: "https://github.com/${{ env.GITHUB_REPOSITORY }}/actions/runs/${{ env.GITHUB_RUN_ID }}"
