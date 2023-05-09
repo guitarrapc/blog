@@ -1,13 +1,9 @@
 ---
-Title: Hatena Blog
-date: 2020-03-22
+title: Hatena Blog
 url: https://tech.guitarracpc.com
-theme: https://blog.hatena.ne.jp/-/store/theme/17680117127077295762
+theme: [gram](https://blog.hatena.ne.jp/-/store/theme/17680117127077295762)
+theme since: 2020-03-22
 ---
-
-## Theme
-
-[gram](https://blog.hatena.ne.jp/-/store/theme/17680117127077295762)
 
 ## Sidebar
 
