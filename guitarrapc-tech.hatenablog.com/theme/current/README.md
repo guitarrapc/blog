@@ -22,16 +22,16 @@ Order by followings.
 * Profile
 * Google Adsence
 
-## Coockie Policy
+## Cookie Policy
 
- Coockie Policy for Google Analytics, Google Adsense and site optimization.
+ Cookie Policy for Google Analytics, Google Adsense and site optimization.
 
- > https://tech.guitarrapc.com/coockie-policy
+ > https://tech.guitarrapc.com/cookie-policy
 
- Coockie Policy contents are generated via cookiepolicygenerator.
+ Cookie Policy contents are generated via cookiepolicygenerator.
 
 > https://cookiepolicygenerator.com/live.php?token=ywTalVanBcnQPscj6OrFEprepWMLVVyL .
 
-Coockie Consent will show on page bottom, this is COOCKIE CONSENT.
+Cookie Consent will show on page bottom, this is Cookie CONSENT.
 
 > https://cookieconsent.insites.com/download/#
