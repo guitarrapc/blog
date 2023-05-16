@@ -1,6 +1,29 @@
 {
   "scripts": {
     "post": "scripts/post.sh $npm_config_path",
-    "pull": "scripts/pull.sh"
+    "pull": "scripts/pull.sh",
+    "lint": "npx textlint ./guitarrapc-tech.hatenablog.com/entry/**/*.md",
+    "fix": "npx textlint --fix ./Content/posts/*.md"
+  },
+  "name": "blog",
+  "description": "GitHubとはてなブログの連携用環境。\r  - Issueを利用して、記事の同期、作成することができます\r  - PullRequestにて変更点を作成し、それがマージされたタイミングではてなブログの記事も更新されます",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guitarrapc/blog.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/guitarrapc/blog/issues"
+  },
+  "homepage": "https://github.com/guitarrapc/blog#readme",
+  "devDependencies": {
+    "textlint": "^13.3.2",
+    "textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet": "^1.0.1",
+    "textlint-rule-period-in-list-item": "^1.0.1",
+    "textlint-rule-preset-ja-technical-writing": "^7.0.0"
   }
 }
