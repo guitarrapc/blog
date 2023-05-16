@@ -10,7 +10,7 @@ jobs:
   push:
     if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 60
     steps:
       - name: Setup Go
         uses: guitarrapc/blog/.github/actions/setup-go@main
