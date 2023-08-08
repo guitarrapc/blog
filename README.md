@@ -1,6 +1,6 @@
 # push-to-hatenablog
  GitHubとはてなブログの連携用環境。
- - Issueを利用して、記事の同期、作成することができます
+ - Issueを利用して、記事の同期、作成できます
  - PullRequestにて変更点を作成し、それがマージされたタイミングではてなブログの記事も更新されます
 
 ## セットアップ
@@ -10,8 +10,8 @@
 ### 2. Secretの追加
 GitHubリポジトリに以下の２つのSecretを追加してください。
 GitHubアクションで記事を更新するために使用します。
-* `DOMAIN`という名前でSecretを追加してください。値にはブログのドメイン名を設定してください。
-* `BSY`という名前で以下のような値のSecretを追加してください。
+* `DOMAIN`という名前でSecretを追加してください。値にはブログのドメイン名を設定してください
+* `BSY`という名前で以下のような値のSecretを追加してください
 ```yaml
 [ブログのドメイン]:\n
   username: [ユーザ名]\n
@@ -42,13 +42,13 @@ issueテンプレートから「全記事同期用テンプレート」を選択
 
 ## 使い方
 ### はてなブログから全記事取得
-- ローカル: `npm run pull` で全記事をローカルに取得します。
-- Github: issueテンプレート「全記事同期用テンプレート」を使ってissueを作成し、closeしてください。詳しい利用方法はテンプレートを確認してください。
+- ローカル: `npm run pull` で全記事をローカルに取得します
+- Github: issueテンプレート「全記事同期用テンプレート」を使ってissueを作成し、closeしてください。詳しい利用方法はテンプレートを確認してください
 
 
 ### 新規記事(下書き)の投稿
 - ローカル: `npm run push -path='パス名'` で記事を下書き状態で新規作成できます
-- Github: issueテンプレート「記事の追加用テンプレート」を使ってissueを作成し、closeすると記事を下書き状態で新規作成できます。詳しい利用方法はテンプレートを確認してください。
+- Github: issueテンプレート「記事の追加用テンプレート」を使ってissueを作成し、closeすると記事を下書き状態で新規作成できます。詳しい利用方法はテンプレートを確認してください
 
 いずれの場合でも、空の記事を下書き状態で作成します。記事の編集は、作成されたエントリを編集する方式で管理します(詳しくは「編集した記事の更新」の項を参照してください)。Githubで新規記事を作成した場合は、mainブランチの記事ディレクトリ内に指定したパスで記事が作成されていますので、その記事を編集して公開してください。
 
@@ -82,3 +82,14 @@ Slackに更新ワークフローの結果を通知する場合は、[.github/wor
 | key | value
 | - | -
 | SLACK_WEBHOOK_URL | Incoming Webhookで指定されたWebhook URL
+
+
+## VSCode
+
+* textlint をインストールして、各種ルールをセットアップします
+
+```sh
+npm install --save-dev textlint textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet textlint-rule-period-in-list-item textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word
+```
+
+* [vscode-textlint](https://marketplace.visualstudio.com/items?itemName=taichi.vscode-textlint) をインストールして、VSCodeでtextlintを実行できるようにします
