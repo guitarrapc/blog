@@ -1,4 +1,4 @@
-name: post to hatena blog
+name: post draft to hatena blog
 
 on:
   issues:
