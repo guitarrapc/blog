@@ -10,12 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Setup Go
-        uses: guitarrapc/blog/.github/actions/setup-go@main
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
       - name: Setup blogsync
-        uses: guitarrapc/blog/.github/actions/setup-blogsync@main
+        uses: ./.github/actions/setup-blogsync
         with:
           bsy: ${{ secrets.BSY }}
       - name: post
@@ -23,7 +21,7 @@ jobs:
           echo '${{ github.event.issue.body }}' \
           | grep '^path:' \
           | sed -e "s/path:\(.*\)[ \f\n\r\t]/\1/g" \
-          | xargs -t -n1 -I{} ~/go/bin/blogsync post --title=draft --draft --custom-path={} ${{ env.DOMAIN }} ""
+          | xargs -t -n1 -I{} blogsync post --title=draft --draft --custom-path={} ${{ env.DOMAIN }} ""
         env:
           DOMAIN: ${{ secrets.DOMAIN }}
       - name: Git Commit & Push

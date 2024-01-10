@@ -11,18 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Setup Go
-        uses: guitarrapc/blog/.github/actions/setup-go@main
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
         with:
           fetch-depth: 3
       - name: Setup blogsync
-        uses: guitarrapc/blog/.github/actions/setup-blogsync@main
+        uses: ./.github/actions/setup-blogsync
         with:
           bsy: ${{ secrets.BSY }}
       - name: pull blog
-        run: ~/go/bin/blogsync pull ${{ env.DOMAIN }}
+        run: blogsync pull ${{ env.DOMAIN }}
         env:
           DOMAIN: ${{ secrets.DOMAIN }}
       - name: Git Commit & Push
