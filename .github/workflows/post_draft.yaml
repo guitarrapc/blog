@@ -21,7 +21,7 @@ jobs:
           echo '${{ github.event.issue.body }}' \
           | grep '^path:' \
           | sed -e "s/path:\(.*\)[ \f\n\r\t]/\1/g" \
-          | xargs -t -n1 -I{} blogsync post --title=draft --draft --custom-path={} ${{ env.DOMAIN }} ""
+          | xargs -t -n1 -I{} blogsync post --draft --title=draft --custom-path={} ${{ env.DOMAIN }}
         env:
           DOMAIN: ${{ secrets.DOMAIN }}
       - name: Git Commit & Push
