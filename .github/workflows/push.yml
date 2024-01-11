@@ -1,0 +1,42 @@
+name: push to hatena blog
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - closed
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 3
+      - name: Setup blogsync
+        uses: ./.github/actions/setup-blogsync
+        with:
+          bsy: ${{ secrets.BSY }}
+      - name: git fetch pull request state
+        run: |
+          git fetch origin main
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          echo "MAIN_SHA=$(git rev-parse origin/main~)" | tee -a $GITHUB_ENV
+      - name: push blog
+        if: ${{ github.event.pull_request.merged == true }}
+        run: |
+          git diff --name-only ${{env.MAIN_SHA}} ${{github.event.pull_request.head.sha}} -- \
+          | grep "^${{ env.DOMAIN }}" \
+          | xargs -t -n1 blogsync push
+        env:
+          DOMAIN: ${{ secrets.DOMAIN }}
+    # - name: notify to slack
+    #   uses: mm0202/action_slack-notify@master
+    #   if: always()
+    #   env:
+    #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

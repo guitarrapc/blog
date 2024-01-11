@@ -1,0 +1,27 @@
+name: Setup Blogsync
+description: Setup Go runtime
+inputs:
+  version:
+    description: "blogsync version to setup"
+    required: false
+    default: "v0.20.1"
+  bsy:
+    description: blog sync setting yaml.
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Setup blogsync
+      shell: bash
+      run: |
+        mkdir -p ~/go/bin/blogsync
+        cd ~/go/bin/blogsync
+        curl -LO https://github.com/x-motemen/blogsync/releases/download/${{ inputs.version }}/blogsync_${{ inputs.version }}_linux_amd64.tar.gz
+        tar -zxvf blogsync_${{ inputs.version }}_linux_amd64.tar.gz
+        mv ./blogsync_${{ inputs.version }}_linux_amd64/blogsync /usr/local/bin/blogsync
+        blogsync --version
+    - name: Output Config
+      shell: bash
+      run: echo -e ${BSY} > blogsync.yaml
+      env:
+        BSY: ${{ inputs.bsy }}
