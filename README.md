@@ -30,10 +30,13 @@ GitHubリポジトリに以下の２つのSecretを追加してください。Gi
 
 issueテンプレートから「全記事同期用テンプレート」を選択肢、issueを作成してください。このissueを閉じると、mainブランチにすべての記事が同期されます。
 
-> ![TIPS]
-> あるいは github actions の`記事同期`で workflow_dispatch で実行しても同期されます。
+> [!TIP]
+> github actions の`記事同期`で workflow_dispatch で実行しても同期できます。
 
-## 4.ローカル環境のセットアップ (ローカル環境から利用しない場合には不要です)
+## 4.ローカル環境のセットアップ
+
+> [!NOTE]
+> ローカル環境から利用しないなら不要です。
 
 ### `blogsync.yaml`の追加
 
@@ -48,8 +51,6 @@ issueテンプレートから「全記事同期用テンプレート」を選択
 .env`ファイルを作成して`DOMAIN=[ブログのドメイン]`を追加してください。
 
 ## 5.VS Codeで記事を書く準備
-
-### textlintをインストール
 
 textlintと各種ルールをセットアップします。
 
@@ -77,9 +78,7 @@ GitHubアクションの設定は以下を確認してください。
 - ローカル: `npm run push -path='パス名'`で記事を下書き状態で新規作成できます
 - Github: issueテンプレート「記事の追加用テンプレート」を使ってissueを作成し、closeすると記事を下書き状態で新規作成できます。詳しい利用方法はテンプレートを確認してください
 
-GitHubアクションの設定は以下を確認してください。
-
-[.github/workflows/post_draft.yaml](.github/workflows/post_draft.yaml)
+GitHubアクションの設定は[.github/workflows/post_draft.yaml](.github/workflows/post_draft.yaml)を確認してください。
 
 いずれの場合でも、空の記事を下書き状態で作成します。記事の編集は、作成されたエントリを編集する方式で管理します(詳しくは「編集した記事の更新」の項を参照してください)。Githubで新規記事を作成した場合は、mainブランチの記事ディレクトリ内に指定したパスで記事が作成されていますので、その記事を編集して公開してください。
 
@@ -91,12 +90,10 @@ GitHubアクションの設定は以下を確認してください。
 
 記事を編集したブランチを作成し、そのpull-requestがmainへマージされると、差分がGithub Actionsにより、はてなブログで更新されます。
 
-GitHubアクションの設定は以下を確認してください。
-
-[.github/workflows/push_article.yaml](.github/workflows/push_article.yaml)
-
-> ![WARNING]
+> [!WARNING]
 > mainブランチを直接更新しても、はてなブログは更新されません。必ずブランチを作成しpull-requestを作成してください。
+
+GitHubアクションの設定は[.github/workflows/push_article.yaml](.github/workflows/push_article.yaml)を確認してください。
 
 # Slack通知設定
 
