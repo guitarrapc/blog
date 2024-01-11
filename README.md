@@ -69,37 +69,37 @@ npm install --save-dev textlint textlint-rule-no-mixed-zenkaku-and-hankaku-alpha
 - ローカル: `npm run pull`で全記事をローカルに取得します
 - Github: issueテンプレート「全記事同期用テンプレート」を使ってissueを作成し、closeしてください。詳しい利用方法はテンプレートを確認してください
 
-GitHubアクションの設定は以下を確認してください。
-
-[.github/workflows/pull_articles.yaml](.github/workflows/pull_articles.yaml)
+> [!NOTE]
+> GitHubアクションの設定は[.github/workflows/pull_articles.yaml](.github/workflows/pull_articles.yaml)を確認してください。
 
 ## 新規記事(下書き)の投稿
 
-- ローカル: `npm run push -path='パス名'`で記事を下書き状態で新規作成できます
-- Github: issueテンプレート「記事の追加用テンプレート」を使ってissueを作成し、closeすると記事を下書き状態で新規作成できます。詳しい利用方法はテンプレートを確認してください
+次の方法を用いて、空の記事を下書き状態で作成します。
 
-GitHubアクションの設定は[.github/workflows/post_draft.yaml](.github/workflows/post_draft.yaml)を確認してください。
+- ローカル: `npm run push -path='パス名'`で記事を下書き状態で新規作成します
+- Github: issueテンプレート「記事の追加用テンプレート」を使ってissueを作成し、closeすると記事を下書き状態で新規作成します
 
-いずれの場合でも、空の記事を下書き状態で作成します。記事の編集は、作成されたエントリを編集する方式で管理します(詳しくは「編集した記事の更新」の項を参照してください)。Githubで新規記事を作成した場合は、mainブランチの記事ディレクトリ内に指定したパスで記事が作成されていますので、その記事を編集して公開してください。
+> [!NOTE]
+> GitHubアクションの設定は[.github/workflows/post_draft.yaml](.github/workflows/post_draft.yaml)を確認してください。
 
-注意点として、Githubのissueを使って記事を作成する場合には、記事の著者がsecretで指定したユーザーになります。例えば技術ブログなどで、著者を別のユーザーとしたい場合には、その著者がローカルから記事を作成する必要があります。
-[ブログメンバーが AtomPub APIを利用できるようにしました - はてなブログ開発ブログ](https://staff.hatenablog.com/entry/2022/06/17/110608)
-
+> [!TIP]
+> Githubで新規記事を作成した場合は、mainブランチの記事ディレクトリ内に指定したパスで記事が作成されています。
 
 ## 編集した記事の更新
 
-記事を編集したブランチを作成し、そのpull-requestがmainへマージされると、差分がGithub Actionsにより、はてなブログで更新されます。
+作成した記事を編集したブランチを作成し、そのpull-requestがmainへマージされると、Github Actionsで差分記事をはてなブログに更新します。
+
+> [!NOTE]
+> GitHubアクションの設定は[.github/workflows/push_article.yaml](.github/workflows/push_article.yaml)を確認してください。
 
 > [!WARNING]
 > mainブランチを直接更新しても、はてなブログは更新されません。必ずブランチを作成しpull-requestを作成してください。
-
-GitHubアクションの設定は[.github/workflows/push_article.yaml](.github/workflows/push_article.yaml)を確認してください。
 
 # Slack通知設定
 
 ## `.github/workflows/push_article.yaml`の調整
 
-Slackに更新ワークフローの結果を通知する場合は、[.github/workflows/push_article.yaml](.github/workflows/push_article.yaml)内の以下のコメントアウトを解除してください。
+Slackに更新ワークフローの結果を通知する場合は、[.github/workflows/push_article.yaml](.github/workflows/push_article.yaml)内の以下のコメントアウトを解除します。
 
 ```yaml
 # - name: notify to slack
