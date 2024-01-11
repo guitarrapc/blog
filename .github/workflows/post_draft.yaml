@@ -1,4 +1,4 @@
-name: post draft to hatena blog
+name: 下書き記事の作成
 
 on:
   issues:

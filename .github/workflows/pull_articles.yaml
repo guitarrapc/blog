@@ -1,4 +1,4 @@
-name: pull from hatena blog
+name: 記事同期
 
 on:
   workflow_dispatch:
