@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+set -eu
 
 source ./.env
 
@@ -8,5 +9,4 @@ if [ $# -ne 1 ]; then
 fi
 
 custom_path=$1
-
-docker-compose run --rm blogsync post --title=draft --draft --custom-path=${custom_path} $DOMAIN < draft.md
+docker-compose run --rm blogsync post --title=draft --draft --custom-path="${custom_path}" "$DOMAIN" < draft.md
