@@ -5,12 +5,11 @@ on:
     branches:
       - main
     types:
-      - opened
-      - synchronize
       - closed
 
 jobs:
   push:
+    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -23,14 +22,14 @@ jobs:
         with:
           bsy: ${{ secrets.BSY }}
       - name: git fetch pull request state
+        id: git-fetch
         run: |
           git fetch origin main
           git fetch origin ${{ github.event.pull_request.head.ref }}
-          echo "MAIN_SHA=$(git rev-parse origin/main~)" | tee -a $GITHUB_ENV
+          echo "sha=$(git rev-parse origin/main~)" | tee -a "$GITHUB_OUTPUT"
       - name: push blog
-        if: ${{ github.event.pull_request.merged == true }}
         run: |
-          git diff --name-only ${{env.MAIN_SHA}} ${{github.event.pull_request.head.sha}} -- \
+          git diff --name-only ${{ steps.git-fetch.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- \
           | grep "^${{ env.DOMAIN }}" \
           | xargs -t -n1 blogsync push
         env:
