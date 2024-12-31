@@ -17,6 +17,7 @@
       "ja-space-around-link": true
     },
     "preset-ja-technical-writing": {
+      "ja-no-mixed-period": false,
       "no-exclamation-question-mark": false,
       "sentence-length": {
         "max": 300
