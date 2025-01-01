@@ -6,6 +6,8 @@ on:
       - main
     types:
       - closed
+    paths:
+      - guitarrapc-tech.hatenablog.com/entry/**/*.md
 
 jobs:
   push:
