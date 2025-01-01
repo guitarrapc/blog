@@ -24,9 +24,10 @@ jobs:
       - name: git fetch pull request state
         id: git-fetch
         run: |
-          git fetch origin main
-          git fetch origin ${{ github.event.pull_request.head.ref }}
-          echo "sha=$(git rev-parse origin/main~)" | tee -a "$GITHUB_OUTPUT"
+          sha=$(gh api repos/${{ github.repository }}/commits/main --jq .sha)
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: push blog
         run: |
           git diff --name-only ${{ steps.git-fetch.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- \
