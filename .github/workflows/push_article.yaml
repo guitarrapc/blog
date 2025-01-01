@@ -23,16 +23,9 @@ jobs:
         uses: ./.github/actions/setup-blogsync
         with:
           bsy: ${{ secrets.BSY }}
-      - name: git fetch pull request state
-        id: git-fetch
-        run: |
-          sha=$(gh api repos/${{ github.repository }}/commits/main --jq .sha)
-          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: push blog
         run: |
-          git diff --name-only ${{ steps.git-fetch.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- \
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- \
           | grep "^${{ env.DOMAIN }}" \
           | xargs -t -n1 blogsync push
         env:
