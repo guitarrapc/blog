@@ -2,7 +2,7 @@
 
 はてなブログ記事とGitHub-はてなブログ連携用環境です。
 
-https://github.com/hatena/Hatena-Blog-Workflows-Boilerplateをベースに、はてなブログの記事をGitHubで管理するための環境を構築します。
+[hatena/Hatena-Blog-Workflows-Boilerplate](https://github.com/hatena/Hatena-Blog-Workflows-Boilerplate)をベースに、はてなブログの記事をGitHubで管理するための環境を構築します。
 
 # VS Codeで記事を書く
 
