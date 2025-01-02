@@ -6,18 +6,34 @@
 
 # VS Codeで記事を書く
 
+Nodeをインストールしておきます。
+
+```shell
+nvm install lts
+nvm use lts
+```
+
 textlintと各種ルールをセットアップします。
 
 ```shell
 npm install --save-dev textlint textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet textlint-rule-period-in-list-item textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word
 ```
 
-
 VSCodeの拡張機能をインストールします。
 
 [vscode-textlint](https://marketplace.visualstudio.com/items?itemName=taichi.vscode-textlint)をインストールして、VSCodeでtextlintを実行できるようにします。
 
-記事を書きます。
+## textlintを実行する
+
+VSCodeで記事を書いているとリアルタイムで校正されます。PROBLEMSタブを開いてエラーを確認できます。
+
+ローカルでtextlintを実行するには、以下のコマンドを実行します。
+
+```shell
+npm run lint
+```
+
+
 
 # HatenaBlog Workflows Boilerplate(β)
 
