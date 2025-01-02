@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: restore textlint
+        run: npm ci
       - name: textlint (draft)
         run: npm run "lintdraft"
       - name: textlint
