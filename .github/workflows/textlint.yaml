@@ -24,7 +24,7 @@ jobs:
         run: npm run "lintdraft"
       - name: textlint
         run: |
-          for year in 2023 2024 2025; do
+          for year in 2020 2021 2022 2023 2024 2025; do
             echo "========= textlint for ${year} ========="
             npm run "lint${year}"
           done
