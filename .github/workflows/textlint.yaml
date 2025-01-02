@@ -5,6 +5,7 @@ on:
     paths:
       - "draft_entries/**/*.md"
       - "entries/**/*.md"
+      - .github/workflows/textlint.yaml
 
 # run `npx textlint --fix ./guitarrapc-tech.hatenablog.com/entry/**/*.md` to fix lint errors.
 
