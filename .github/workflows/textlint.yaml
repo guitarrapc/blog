@@ -27,8 +27,9 @@ jobs:
       - name: textlint
         run: |
           for year in 2020 2021 2022 2023 2024 2025; do
-            echo "========= textlint for ${year} ========="
+            echo "::group::textlint for ${year}"
             npm run "lint${year}"
+            echo "::endgroup::"
           done
       # - name: textlint-github-check
       #   uses: tsuyoshicho/action-textlint@v3
