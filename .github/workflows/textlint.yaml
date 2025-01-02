@@ -3,7 +3,8 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "guitarrapc-tech.hatenablog.com/**/*.md"
+      - "draft_entries/**/*.md"
+      - "entries/**/*.md"
 
 # run `npx textlint --fix ./guitarrapc-tech.hatenablog.com/entry/**/*.md` to fix lint errors.
 
