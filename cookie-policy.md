@@ -26,19 +26,10 @@ EditURL: https://blog.hatena.ne.jp/guitarrapc_tech/guitarrapc-tech.hatenablog.co
 <p><strong>The Cookies We Set</strong></p>
 
 <ul>
-
-
-
-
-
-
-
 <li>
     <p>Site preferences cookies</p>
     <p>In order to provide you with a great experience on this site we provide the functionality to set your preferences for how this site runs when you use it. In order to remember your preferences we need to set cookies so that this information can be called whenever you interact with a page is affected by your preferences.</p>
-
 </li>
-
 </ul>
 
 <p><strong>Third Party Cookies</strong></p>
@@ -88,5 +79,3 @@ EditURL: https://blog.hatena.ne.jp/guitarrapc_tech/guitarrapc-tech.hatenablog.co
 <p><strong>Outout ads</strong></p>
 
 <p>You can opt out ads by visiting <a href="https://adssettings.google.com/authenticated?hl=en">Ad Settings</a> or <a href="http://optout.aboutads.info">optout.aboutads.info</a></p>
-
-
