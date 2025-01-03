@@ -1,5 +1,6 @@
 name: 記事の校正
 on:
+  workflow_call:
   pull_request:
     branches: [main]
     paths:
