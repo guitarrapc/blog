@@ -8,5 +8,3 @@ jobs:
   textlint:
     if: ${{ github.event.label.name == 'textlint' }}
     uses: guitarrapc/blog/.github/workflows/textlint.yaml@main
-    secrets:
-      personal_access_token: ${{ secrets.GITHUB_TOKEN }}
