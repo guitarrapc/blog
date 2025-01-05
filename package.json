@@ -36,7 +36,7 @@
     "fix2025": "npx textlint --fix ./entries/guitarrapc-tech.hatenablog.com/entry/2025/**/*.md"
   },
   "name": "blog",
-  "description": "GitHubとはてなブログの連携用環境。\r  - Issueを利用して、記事の同期、作成することができます\r  - PullRequestにて変更点を作成し、それがマージされたタイミングではてなブログの記事も更新されます",
+  "description": "GitHubとはてなブログの連携用環境の文書校正をtextlintで行います",
   "version": "1.0.0",
   "main": "index.js",
   "repository": {
