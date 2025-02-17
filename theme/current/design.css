@@ -32,6 +32,19 @@ div .entry-content,
 
 /* ---- CSS Hack End ---- */
 
+/* ---- Update notice ---- */
+.update-notice {
+  background-color: #fffbe6;
+  /* 柔らかいイエロー */
+  color: #333;
+  padding: 15px 20px;
+  border-left: 5px solid #ffcc00;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+  font-size: 16px;
+}
+
 /* go top */
 
 #page-top {

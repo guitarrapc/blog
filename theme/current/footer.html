@@ -23,10 +23,10 @@
   }(jQuery);
 </script>
 
-<!-- Old article -->
+<!-- Update notice -->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const n = 30; // 経過日数のしきい値（例: 30日）
+    const n = 1095; // 経過日数のしきい値（例: 30日）
 
     // 最終更新日を示す要素 (.date-last-updated 内の time 要素) を取得
     const updateElem = document.querySelector('.date-last-updated time');
@@ -43,24 +43,14 @@
       // 経過日数がn日以上の場合に注意メッセージを作成
       if (diffDays >= n) {
         const notice = document.createElement('div');
-        notice.innerHTML = `<strong>注意:</strong> このブログは最終更新から${diffDays}日経過しています。内容が最新でない可能性があります。`;
-
-        // スタイリッシュなデザイン設定
-        notice.style.backgroundColor = "#fffbe6";  // 柔らかいイエロー
-        notice.style.color = "#333";
-        notice.style.padding = "15px 20px";
-        notice.style.borderLeft = "5px solid #ffcc00";
-        notice.style.borderRadius = "4px";
-        notice.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
-        notice.style.margin = "20px 0";
-        notice.style.fontSize = "16px";
+        notice.classList.add('update-notice');
+        notice.innerHTML = `この記事は${diffDays}日更新されていません。内容が最新でない可能性があります。`;
 
         // div.entry-content の先頭に挿入
         const targetElem = document.querySelector('div.entry-content');
         if (targetElem) {
           targetElem.insertBefore(notice, targetElem.firstChild);
         } else {
-          // 対象エレメントが見つからなければ、bodyの先頭に挿入
           document.body.insertBefore(notice, document.body.firstChild);
         }
       }
