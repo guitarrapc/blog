@@ -29,13 +29,13 @@ jobs:
         id: changed-draft-files
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         with:
-          list-files: shell # default 'none'. Disables listing of matching files.
+          list-files: csv # default 'none'. Disables listing of matching files.
           filters: |
             changes:
               - draft_entries/**/*.md
       - name: push only draft entry
         run: |
-          for file in ${{ steps.changed-draft-files.outputs.changes_files }}; do
+          for file in ${{ steps.changed-draft-files.outputs.changes == 'true' }}; do
             draft=$(yq --front-matter=extract 'select(.Draft == true)' "$file")
             editurl=$(yq --front-matter=extract 'select(.EditURL == "https://blog.hatena.ne.jp/*")' "$file")
             if [[ -n "$draft" ]] && [[ -n "$editurl" ]]; then
