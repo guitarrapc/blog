@@ -33,7 +33,7 @@ jobs:
       - name: blogsync push
         id: publised-from-draft
         run: |
-          for file in ${{ steps.changed-draft-files.outputs.changes == 'true' }}; do
+          for file in ${{ steps.changed-draft-files.outputs.changes_files }}; do
             draft=$(yq --front-matter=extract 'select(.Draft == true)' "$file")
             if [[ -z "$draft" ]]; then
               blogsync push "$file"

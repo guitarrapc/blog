@@ -41,7 +41,7 @@ jobs:
       - name: List all changed files markdown files
         if: ${{ steps.changed-entries.outputs.changes == 'true' }}
         run: |
-          for f in ${{ steps.changed-entries.outputs.all_changed_files }}; do
+          for f in ${{ steps.changed-entries.outputs.changes_files }}; do
             python3 /tmp/fotolife-client.py "$f"
           done
         env:
