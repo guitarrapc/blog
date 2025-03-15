@@ -25,7 +25,7 @@ jobs:
           list-files: csv # default 'none'. Disables listing of matching files.
           filters: |
             changes:
-              - **.md
+              - entries/**/*.md
       - name: set owner
         id: set-owner
         run: |
