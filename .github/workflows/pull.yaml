@@ -5,7 +5,7 @@ on:
 
 jobs:
   pull:
-    uses: hatena/hatenablog-workflows/.github/workflows/pull.yaml@v1
+    uses: hatena/hatenablog-workflows/.github/workflows/pull.yaml@f42256332f4838de9799dbed0b1ac6d3ce2224f2 # v1.3.3
     with:
       BLOG_DOMAIN: ${{ vars.BLOG_DOMAIN }}
     secrets:
