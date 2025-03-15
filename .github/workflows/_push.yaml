@@ -26,13 +26,13 @@ jobs:
         id: changed-files
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         with:
-          list-files: csv # default 'none'. Disables listing of matching files.
+          list-files: shell # default 'none'. Disables listing of matching files.
           filters: |
             changes:
               - ${{ inputs.local_root }}/**/*.md
       - name: blogsync push
         run: |
-          for file in ${{ steps.changed-files.outputs.changes }}; do
+          for file in ${{ steps.changed-files.outputs.changes_files }}; do
             draft=$(yq --front-matter=extract 'select(.Draft == true)' "$file")
             if [[ -z "$draft" ]]; then
               blogsync push "$file"
