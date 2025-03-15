@@ -1,0 +1,42 @@
+name: "[Reusable workflows] push to hatena blog"
+
+on:
+  workflow_call:
+    inputs:
+      local_root:
+        default: "entries"
+        type: string
+    secrets:
+      OWNER_API_KEY:
+        required: true
+
+jobs:
+  push:
+    if: |
+      github.event.pull_request.merged == true
+      && !contains(github.event.pull_request.labels.*.name, 'skip-push')
+    runs-on: ubuntu-latest
+    env:
+      BLOGSYNC_PASSWORD: ${{ secrets.OWNER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: setup
+        uses: hatena/hatenablog-workflows/.github/actions/setup@v1
+      - name: Get changed files
+        id: changed-files
+        uses: dorny/paths-filter@v3
+        with:
+          list-files: csv # default 'none'. Disables listing of matching files.
+          filters: |
+            changes:
+              - ${{ inputs.local_root }}/**/*.md
+      - name: blogsync push
+        run: |
+          for file in ${{ steps.changed-files.outputs.changes }}; do
+            draft=$(yq --front-matter=extract 'select(.Draft == true)' "$file")
+            if [[ -z "$draft" ]]; then
+              blogsync push "$file"
+            fi
+          done

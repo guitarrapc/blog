@@ -1,0 +1,44 @@
+name: "[Reusable workflows] push draft to hatena blog"
+
+on:
+  workflow_call:
+    secrets:
+      OWNER_API_KEY:
+        required: true
+
+jobs:
+  upload-images:
+    # uses: hatena/hatenablog-workflows/.github/workflows/upload-images.yaml@v1
+    uses: ./.github/workflows/_upload-images.yaml
+    secrets:
+      OWNER_API_KEY: ${{ secrets.OWNER_API_KEY }}
+  push-draft:
+    if: always()
+    needs: upload-images
+    runs-on: ubuntu-latest
+    env:
+      BLOGSYNC_PASSWORD: ${{ secrets.OWNER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.upload-images.result == 'success' && needs.upload-images.outputs.revision || '' }}
+          fetch-depth: 0
+      - name: setup
+        uses: hatena/hatenablog-workflows/.github/actions/setup@v1
+      - name: Get changed draft files
+        id: changed-draft-files
+        uses: dorny/paths-filter@v3
+        with:
+          list-files: csv # default 'none'. Disables listing of matching files.
+          filters: |
+            changes:
+              - draft_entries/**/*.md
+      - name: push only draft entry
+        run: |
+          for file in ${{ steps.changed-draft-files.outputs.changes == 'true' }}; do
+            draft=$(yq --front-matter=extract 'select(.Draft == true)' "$file")
+            editurl=$(yq --front-matter=extract 'select(.EditURL == "https://blog.hatena.ne.jp/*")' "$file")
+            if [[ -n "$draft" ]] && [[ -n "$editurl" ]]; then
+              blogsync push "$file"
+            fi
+          done

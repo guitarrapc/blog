@@ -24,14 +24,16 @@ jobs:
         uses: hatena/hatenablog-workflows/.github/actions/setup@v1
       - name: Get changed draft files
         id: changed-draft-files
-        uses: tj-actions/changed-files@v45
+        uses: dorny/paths-filter@v3
         with:
-          files: draft_entries/**/*.md
-          since_last_remote_commit: true
+          list-files: csv # default 'none'. Disables listing of matching files.
+          filters: |
+            changes:
+              - draft_entries/**/*.md
       - name: blogsync push
         id: publised-from-draft
         run: |
-          for file in ${{ steps.changed-draft-files.outputs.all_changed_files }}; do
+          for file in ${{ steps.changed-draft-files.outputs.changes == 'true' }}; do
             draft=$(yq --front-matter=extract 'select(.Draft == true)' "$file")
             if [[ -z "$draft" ]]; then
               blogsync push "$file"
