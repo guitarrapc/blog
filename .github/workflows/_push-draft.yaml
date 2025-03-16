@@ -35,7 +35,7 @@ jobs:
               - draft_entries/**/*.md
       - name: push only draft entry
         run: |
-          for file in ${{ steps.changed-draft-files.outputs.changes == 'true' }}; do
+          for file in ${{ steps.changed-draft-files.outputs.changes_files }}; do
             draft=$(yq --front-matter=extract 'select(.Draft == true)' "$file")
             editurl=$(yq --front-matter=extract 'select(.EditURL == "https://blog.hatena.ne.jp/*")' "$file")
             if [[ -n "$draft" ]] && [[ -n "$editurl" ]]; then
