@@ -32,7 +32,7 @@ jobs:
               - ${{ inputs.local_root }}/**/*.md
       - name: blogsync push
         run: |
-          for file in ${{ steps.changed-files.outputs.changes }}; do
+          for file in ${{ steps.changed-files.outputs.changes_files }}; do
             draft=$(yq --front-matter=extract 'select(.Draft == true)' "$file")
             if [[ -z "$draft" ]]; then
               blogsync push "$file"
