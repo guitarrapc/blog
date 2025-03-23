@@ -32,7 +32,7 @@ jobs:
           list-files: shell # default 'none'. Disables listing of matching files.
           filters: |
             changes:
-              - draft_entries/**/*.md
+              - added|modified: draft_entries/**/*.md
       - name: push only draft entry
         run: |
           for file in ${{ steps.changed-draft-files.outputs.changes_files }}; do

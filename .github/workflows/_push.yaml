@@ -29,7 +29,7 @@ jobs:
           list-files: shell # default 'none'. Disables listing of matching files.
           filters: |
             changes:
-              - ${{ inputs.local_root }}/**/*.md
+              - added|modified: ${{ inputs.local_root }}/**/*.md
       - name: blogsync push
         run: |
           for file in ${{ steps.changed-files.outputs.changes_files }}; do
