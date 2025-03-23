@@ -22,7 +22,7 @@ jobs:
         id: changed-entries
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         with:
-          list-files: csv # default 'none'. Disables listing of matching files.
+          list-files: shell # default 'none'. Disables listing of matching files.
           filters: |
             changes:
               - entries/**/*.md
