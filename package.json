@@ -52,6 +52,7 @@
   "homepage": "https://github.com/guitarrapc/blog#readme",
   "devDependencies": {
     "textlint": "^14.5.0",
+    "textlint-filter-rule-comments": "^1.2.2",
     "textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet": "^1.0.1",
     "textlint-rule-period-in-list-item": "^1.0.1",
     "textlint-rule-preset-ja-spacing": "^2.4.3",
