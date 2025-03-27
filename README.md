@@ -16,7 +16,7 @@ nvm use lts
 textlintと各種ルールをセットアップします。
 
 ```shell
-npm install --save-dev textlint textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet textlint-rule-period-in-list-item textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word
+npm install --save-dev textlint textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet textlint-rule-period-in-list-item textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word textlint-filter-rule-comments
 ```
 
 VSCodeの拡張機能をインストールします。
@@ -33,7 +33,7 @@ VSCodeで記事を書いているとリアルタイムで校正されます。PR
 npm run lint
 ```
 
-
+<!-- textlint-disable -->
 
 # HatenaBlog Workflows Boilerplate(β)
 
@@ -159,3 +159,5 @@ bash scripts/download_boilerplate_workflows.sh
 
 - 各workflowでは下記で提供されているReusable workflowsを利用しています
   - https://github.com/hatena/hatenablog-workflows
+
+<!-- textlint-enable -->
