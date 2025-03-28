@@ -6,6 +6,7 @@ on:
 jobs:
   create-draft:
     strategy:
+      max-parallel: 5
       matrix:
         title:
           - 2012/11/09/101113
@@ -221,7 +222,7 @@ jobs:
           # - 2013/09/10/130901
     uses: hatena/hatenablog-workflows/.github/workflows/create-draft.yaml@f42256332f4838de9799dbed0b1ac6d3ce2224f2 # v1.3.3
     with:
-      title: ${{ github.event.inputs.title }}
+      title: ${{ matrix.title }}
       draft: true
       BLOG_DOMAIN: ${{ vars.BLOG_DOMAIN }}
     secrets:
