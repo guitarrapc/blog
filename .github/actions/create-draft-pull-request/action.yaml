@@ -1,0 +1,66 @@
+name: create draft pull request
+description: "Create draft pull request for entry"
+inputs:
+  title:
+    description: "title for pull request"
+    required: true
+  draft:
+    description: "create draft pull request"
+    required: true
+  BLOG_DOMAIN:
+    description: "blog domain"
+    required: true
+  ENTRY_PATH:
+    description: "entry path"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: set entry variables
+      id: set-entry-variables
+      run: |
+        echo "EDIT_URL=$(yq --front-matter=extract '.EditURL' ${{ inputs.ENTRY_PATH }})" >> $GITHUB_OUTPUT
+        echo "ENTRY_ID=$(yq --front-matter=extract '.EditURL' ${{ inputs.ENTRY_PATH }} | grep -oP '[^/]+\d$')" >> $GITHUB_OUTPUT
+        echo "PREVIEW_URL=$(yq --front-matter=extract '.PreviewURL' ${{ inputs.ENTRY_PATH }})" >> $GITHUB_OUTPUT
+      shell: bash
+    - name: set owner
+      id: set-owner
+      run: |
+        owner=$(yq ".[\"${{ inputs.BLOG_DOMAIN }}\"].owner" blogsync.yaml)
+        if [[ "$owner" == 'null' ]]; then
+          owner=$(yq ".[\"${{ inputs.BLOG_DOMAIN }}\"].username" blogsync.yaml)
+        fi
+        echo "OWNER_NAME=$owner" >> $GITHUB_OUTPUT
+      shell: bash
+    - name: delete other files
+      run: |
+        set +eo pipefail
+        delete_files=($(git ls-files -o --exclude-standard | xargs -r grep -xL "EditURL: ${{ steps.set-entry-variables.outputs.EDIT_URL }}"))
+        for file in ${delete_files[@]}; do
+          rm "$file"
+        done
+
+        restore_files=($(git ls-files -m --exclude-standard | xargs -r grep -xL "EditURL: ${{ steps.set-entry-variables.outputs.EDIT_URL }}"))
+        for file in ${restore_files[@]}; do
+          git restore "$file"
+        done
+      shell: bash
+    - name: move draft and update metadata
+      uses: hatena/hatenablog-workflows/.github/actions/move-draft-and-update-metadata@1e932419b6749d6b4ad3d0e30d07df87a1ed3c3e # v1
+    - name: create draft pull request
+      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7
+      env:
+        OWNER_NAME: ${{ steps.set-owner.outputs.OWNER_NAME }}
+        ENTRY_ID: ${{ steps.set-entry-variables.outputs.ENTRY_ID }}
+        PREVIEW_URL: ${{ steps.set-entry-variables.outputs.PREVIEW_URL }}
+      with:
+        title: ${{ inputs.title }}
+        branch: draft-entry-${{ env.ENTRY_ID }}
+        body: |
+          ## ${{ inputs.title }}
+
+          - 編集ページのURL: https://blog.hatena.ne.jp/${{ env.OWNER_NAME }}/${{ inputs.BLOG_DOMAIN }}/edit?entry=${{ env.ENTRY_ID }}
+          - プレビューへのURL: ${{ env.PREVIEW_URL == 'null' && 'なし' || env.PREVIEW_URL }}
+        delete-branch: true
+        draft: ${{ inputs.draft == 'true' }}

@@ -1,0 +1,55 @@
+name: "[Reusable workflows] create draft and pull from hatenablog"
+
+on:
+  workflow_call:
+    inputs:
+      title:
+        required: true
+        type: string
+      draft:
+        default: true
+        type: boolean
+      BLOG_DOMAIN:
+        required: true
+        type: string
+    secrets:
+      OWNER_API_KEY:
+        required: true
+
+jobs:
+  post_draft_and_pull_from_hatenablog:
+    name: create draft and pull from hatenablog
+    runs-on: ubuntu-latest
+    env:
+      BLOGSYNC_PASSWORD: ${{ secrets.OWNER_API_KEY }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: setup
+        uses: hatena/hatenablog-workflows/.github/actions/setup@1e932419b6749d6b4ad3d0e30d07df87a1ed3c3e # v1
+      - name: setup draft
+        run: |
+          yq --front-matter="process" ".Title=strenv(TITLE)" draft.template > draft
+        env:
+          TITLE: ${{ inputs.title }}
+      - name: set blog domain
+        id: set-domain
+        run: |
+          domain=${{ inputs.BLOG_DOMAIN }}
+          echo "BLOG_DOMAIN=$(echo $domain | tr -d '\n\r ')" >> "$GITHUB_OUTPUT"
+      - name: post draft to hatenablog
+        id: post-draft
+        run: |
+          entry_path=$(blogsync post --draft ${{ steps.set-domain.outputs.BLOG_DOMAIN }} < 'draft')
+          echo "ENTRY_PATH=$entry_path" >> "$GITHUB_OUTPUT"
+      - name: fetch entry
+        run: |
+          blogsync fetch ${{ steps.post-draft.outputs.ENTRY_PATH }}
+      - name: pull draft by title
+        uses: .github/actions/create-draft-pull-request
+        with:
+          title: ${{ inputs.title }}
+          draft: ${{ inputs.draft }}
+          BLOG_DOMAIN: ${{ steps.set-domain.outputs.BLOG_DOMAIN }}
+          ENTRY_PATH: ${{ steps.post-draft.outputs.ENTRY_PATH }}

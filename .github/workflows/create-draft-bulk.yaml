@@ -220,7 +220,8 @@ jobs:
           # - 20130908100933
           # - 20130908170940
           # - 20130910130901
-    uses: hatena/hatenablog-workflows/.github/workflows/create-draft.yaml@f42256332f4838de9799dbed0b1ac6d3ce2224f2 # v1.3.3
+    # uses: hatena/hatenablog-workflows/.github/workflows/create-draft.yaml@f42256332f4838de9799dbed0b1ac6d3ce2224f2 # v1.3.3
+    uses: ./.github/workflows/_create-draft.yaml
     with:
       title: ${{ matrix.title }}
       draft: true
