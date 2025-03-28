@@ -47,7 +47,7 @@ jobs:
         run: |
           blogsync fetch ${{ steps.post-draft.outputs.ENTRY_PATH }}
       - name: pull draft by title
-        uses: .github/actions/create-draft-pull-request
+        uses: ./.github/actions/create-draft-pull-request
         with:
           title: ${{ inputs.title }}
           draft: ${{ inputs.draft }}
