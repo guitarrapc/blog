@@ -27,20 +27,8 @@ jobs:
         run: npm run "lintdraft"
       - name: textlint
         run: |
-          for year in 2019 2020 2021 2022 2023 2024 2025; do
+          for year in 2012 2013 2018 2019 2020 2021 2022 2023 2024 2025; do
             echo "::group::textlint for ${year}"
             npm run "lint${year}"
             echo "::endgroup::"
           done
-      # - name: textlint-github-check
-      #   uses: tsuyoshicho/action-textlint@v3
-      #   with:
-      #     github_token: ${{ secrets.github_token }}
-      #     reporter: github-check
-      #     textlint_flags: "./entries/guitarrapc-tech.hatenablog.com/entry/${{ matrix.year }}/**/*.md"
-      # - name: textlint-github-pr-review
-      #   uses: tsuyoshicho/action-textlint@v3
-      #   with:
-      #     github_token: ${{ secrets.github_token }}
-      #     reporter: github-pr-review
-      #     textlint_flags: "./entries/guitarrapc-tech.hatenablog.com/entry/${{ matrix.year }}/**/*.md"
