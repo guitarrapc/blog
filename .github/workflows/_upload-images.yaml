@@ -25,7 +25,8 @@ jobs:
           list-files: shell # default 'none'. Disables listing of matching files.
           filters: |
             changes:
-              - added|modified: **/*.md
+              - added|modified: entries/**/*.md
+              - added|modified: draft_entries/**/*.md
       - name: set owner
         id: set-owner
         run: |
