@@ -26,6 +26,7 @@ jobs:
           filters: |
             changes:
               - added|modified: entries/**/*.md
+              - added|modified: draft_entries/**/*.md
       - name: set owner
         id: set-owner
         run: |
