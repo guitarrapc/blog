@@ -13,8 +13,28 @@ on:
 # run `npx textlint --fix ./guitarrapc-tech.hatenablog.com/entry/**/*.md` to fix lint errors.
 
 jobs:
-  textlint:
+  textlint-lint:
+    strategy:
+      fail-fast: false
+      matrix:
+        year:
+          - 2012
+          - 2013
+          # - 2014
+          # - 2015
+          # - 2016
+          - 2017
+          - 2018
+          - 2019
+          - 2020
+          - 2021
+          - 2022
+          - 2023
+          - 2024
+          - 2025
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -28,9 +48,11 @@ jobs:
       - name: textlint (draft)
         run: npm run "lintdraft"
       - name: textlint
-        run: |
-          for year in 2012 2013 2018 2019 2020 2021 2022 2023 2024 2025; do
-            echo "::group::textlint for ${year}"
-            npm run "lint${year}"
-            echo "::endgroup::"
-          done
+        run: npm run "lint${{ matrix.year }}"
+
+  textlint:
+    needs: textlint-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: completed
+        run: echo "textlint job completed"
