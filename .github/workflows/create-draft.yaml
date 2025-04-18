@@ -14,5 +14,6 @@ jobs:
       title: ${{ github.event.inputs.title }}
       draft: true
       BLOG_DOMAIN: ${{ vars.BLOG_DOMAIN }}
+      ADDTIONAL_DRAFT_PR_BODY_PATH: "./.github/PULL_REQUEST_TEMPLATE.md"
     secrets:
       OWNER_API_KEY: ${{ secrets.OWNER_API_KEY }}
