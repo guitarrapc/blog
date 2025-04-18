@@ -13,6 +13,9 @@ inputs:
   ENTRY_PATH:
     description: "entry path"
     required: true
+  ADDTIONAL_DRAFT_PR_BODY:
+    description: "additional body for draft pull request"
+    required: true
 
 runs:
   using: "composite"
@@ -62,5 +65,7 @@ runs:
 
           - 編集ページのURL: https://blog.hatena.ne.jp/${{ env.OWNER_NAME }}/${{ inputs.BLOG_DOMAIN }}/edit?entry=${{ env.ENTRY_ID }}
           - プレビューへのURL: ${{ env.PREVIEW_URL == 'null' && 'なし' || env.PREVIEW_URL }}
+
+          ${{ inputs.ADDTIONAL_DRAFT_PR_BODY }}
         delete-branch: true
         draft: ${{ inputs.draft == 'true' }}
