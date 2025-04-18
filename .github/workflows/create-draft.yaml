@@ -6,14 +6,19 @@ on:
       title:
         description: "Title"
         required: true
+      additional-draft-pr-body-path:
+        description: "Path to additional draft PR body"
+        required: false
+        default: "./.github/PULL_REQUEST_TEMPLATE.md"
 
 jobs:
   create-draft:
-    uses: hatena/hatenablog-workflows/.github/workflows/create-draft.yaml@f42256332f4838de9799dbed0b1ac6d3ce2224f2 # v1.3.3
+    # uses: hatena/hatenablog-workflows/.github/workflows/create-draft.yaml@f42256332f4838de9799dbed0b1ac6d3ce2224f2 # v1.3.3
+    uses: ./.github/workflows/_create-draft.yaml@main
     with:
       title: ${{ github.event.inputs.title }}
       draft: true
       BLOG_DOMAIN: ${{ vars.BLOG_DOMAIN }}
-      ADDTIONAL_DRAFT_PR_BODY_PATH: "./.github/PULL_REQUEST_TEMPLATE.md"
+      addtional-draft-pr-body-path: "${{ inputs.additional-draft-pr-body-path}}"
     secrets:
       OWNER_API_KEY: ${{ secrets.OWNER_API_KEY }}

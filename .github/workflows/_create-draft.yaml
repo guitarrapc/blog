@@ -12,7 +12,7 @@ on:
       BLOG_DOMAIN:
         required: true
         type: string
-      ADDTIONAL_DRAFT_PR_BODY_PATH:
+      addtional-draft-pr-body-path:
         default: ""
         type: string
     secrets:
@@ -32,8 +32,8 @@ jobs:
       - name: Draft PR Additional Body
         id: additional-draft-pr-body
         run: |
-          if [[ -f "${{ inputs.ADDTIONAL_DRAFT_PR_BODY_PATH }}" ]]; then
-            echo "TEXT=$(cat ${{ inputs.ADDTIONAL_DRAFT_PR_BODY_PATH }})" >> "$GITHUB_OUTPUT"
+          if [[ -f "${{ inputs.addtional-draft-pr-body-path }}" ]]; then
+            echo "TEXT=$(cat ${{ inputs.addtional-draft-pr-body-path }})" >> "$GITHUB_OUTPUT"
           else
             echo "TEXT=" >> "$GITHUB_OUTPUT"
           fi
