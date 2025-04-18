@@ -6,10 +6,6 @@ on:
       title:
         description: "Title"
         required: true
-      additional-draft-pr-body-path:
-        description: "Path to additional draft PR body"
-        required: false
-        default: "./.github/PULL_REQUEST_TEMPLATE.md"
 
 jobs:
   create-draft:
