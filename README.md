@@ -19,7 +19,7 @@ textlintと各種ルールをセットアップします。
 npm install --save-dev textlint textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet textlint-rule-period-in-list-item textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word textlint-filter-rule-comments
 ```
 
-VSCodeの拡張機能をインストールします。
+VS Codeの拡張機能をインストールします。
 
 [vscode-textlint](https://marketplace.visualstudio.com/items?itemName=taichi.vscode-textlint)をインストールして、VSCodeでtextlintを実行できるようにします。
 
