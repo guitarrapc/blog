@@ -19,13 +19,13 @@ textlintと各種ルールをセットアップします。
 npm install --save-dev textlint textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet textlint-rule-period-in-list-item textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word textlint-filter-rule-comments
 ```
 
-VSCodeの拡張機能をインストールします。
+VS Codeの拡張機能をインストールします。
 
-[vscode-textlint](https://marketplace.visualstudio.com/items?itemName=taichi.vscode-textlint)をインストールして、VSCodeでtextlintを実行できるようにします。
+[vscode-textlint](https://marketplace.visualstudio.com/items?itemName=taichi.vscode-textlint)をインストールして、VS Codeでtextlintを実行できるようにします。
 
 ## textlintを実行する
 
-VSCodeで記事を書いているとリアルタイムで校正されます。PROBLEMSタブを開いてエラーを確認できます。
+VS Codeで記事を書いているとリアルタイムで校正されます。PROBLEMSタブを開いてエラーを確認できます。
 
 ローカルでtextlintを実行するには、以下のコマンドを実行します。
 
