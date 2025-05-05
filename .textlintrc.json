@@ -21,6 +21,9 @@
     "preset-ja-technical-writing": {
       "ja-no-mixed-period": false,
       "ja-no-successive-word": false,
+      "max-comma": {
+        "max": 5
+      },
       "no-exclamation-question-mark": false,
       "sentence-length": {
         "max": 300
