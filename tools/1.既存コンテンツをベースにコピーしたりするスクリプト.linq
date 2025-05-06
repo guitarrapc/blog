@@ -1,7 +1,7 @@
 <Query Kind="Statements" />
 
 // 既存コンテンツをバックアップする処理。
-// 既存コンテンツを退避して、マークダウン変換前の作業ファイルと元ファイルをそれぞれ用意す。る
+// 既存コンテンツを退避して、マークダウン変換前の作業ファイルと元ファイルをそれぞれ用意する
 var basePath = @"D:\github\guitarrapc\blog\entries\guitarrapc-tech.hatenablog.com\entry\";
 var targetMonths = new[] {
 	"2012/11",
