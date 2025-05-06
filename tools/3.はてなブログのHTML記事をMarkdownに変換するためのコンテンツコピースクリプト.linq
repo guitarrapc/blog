@@ -3,8 +3,8 @@
 // 既存コンテンツをベースにDraftにコンテンツを持ってくる処理。
 // 既存コンテンツがHTMLなのをマークダウンに変換する機能をはてなブログはもっていないので、同一URLで記事を新規で作り直すために行う。
 // Steps to use:
-// 1. 既存の記事にCustomPath: ｙｙｙｙ/MM/dd を設定
-// 2. create-draft-bulk ワークフローでｙｙｙｙ/MM/ddの下書きをまとめて作成
+// 1. 既存の記事にCustomPath: yyyy/MM/dd を設定
+// 2. create-draft-bulk ワークフローでyyyy/MM/ddの下書きをまとめて作成
 // 3. ドラフトのブランチを1ブランチにまとめて、複数日まとめて処理する
 // 4. このスクリプトを実行して、既存コンテンツをベースに下書きを更新
 var draftBasePath = @"D:\github\guitarrapc\blog\draft_entries\";
@@ -36,10 +36,10 @@ foreach (var draft in drafts)
 		.Where(x => x.StartsWith("Title:"))
 		.Select(x => x.Split(":")[1].Trim())
 		.Single();
-		
+
 	if (!titlePattern.IsMatch(title))
 		continue;
-		
+
 	var draftContent = File.ReadAllLines(draft);
 	var draftEditUrlLine = draftContent.Where(x => x.StartsWith("EditURL: ")).Single();
 	var draftPreviewURL = draftContent.Where(x => x.StartsWith("PreviewURL: ")).Single();
@@ -81,7 +81,7 @@ foreach (var draft in drafts)
 			contentBuilder.AppendLine(draftPreviewURL);
 			contentBuilder.AppendLine(customPathLine);
 			contentBuilder.AppendLine("---");
-			
+
 			// コンテンツ
 			var contentsLines = lines.Skip(sectionLines.Length);
 			contentBuilder.AppendLine();
@@ -94,7 +94,7 @@ foreach (var draft in drafts)
 				contentBuilder.AppendLine(line);
 			}
 			var content = contentBuilder.ToString();
-			
+
 			// 書き込み
 			if (content != "")
 			{
