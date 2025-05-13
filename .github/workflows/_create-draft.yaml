@@ -27,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: setup
-        uses: hatena/hatenablog-workflows/.github/actions/setup@1e932419b6749d6b4ad3d0e30d07df87a1ed3c3e # v1.3.4
+        uses: hatena/hatenablog-workflows/.github/actions/setup@fa544a63e845030ff65e35d78847e2bc2cab981e # v2.0.2
       - name: setup draft
         run: |
           yq --front-matter="process" ".Title=strenv(TITLE)" draft.template > draft
