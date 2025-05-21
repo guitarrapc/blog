@@ -51,8 +51,9 @@ jobs:
       - name: commit & push
         id: commit-and-push
         run: |
-          git config user.name "actions-user"
-          git config user.email "action@github.com"
+          git remote set-url origin "https://github-actions:${GITHUB_TOKEN}@github.com/${{ github.repository }}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [[ $(git diff) -eq 0 ]]; then
             exit 0
           fi
