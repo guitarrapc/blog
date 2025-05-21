@@ -12,10 +12,12 @@ jobs:
     uses: ./.github/workflows/_upload-images.yaml
     secrets:
       OWNER_API_KEY: ${{ secrets.OWNER_API_KEY }}
+
   push-draft:
     if: always()
     needs: upload-images
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       BLOGSYNC_PASSWORD: ${{ secrets.OWNER_API_KEY }}
     steps:
