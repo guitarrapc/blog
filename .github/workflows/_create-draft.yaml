@@ -53,4 +53,3 @@ jobs:
           draft: ${{ inputs.draft }}
           BLOG_DOMAIN: ${{ steps.set-domain.outputs.BLOG_DOMAIN }}
           ENTRY_PATH: ${{ steps.post-draft.outputs.ENTRY_PATH }}
-          ADDTIONAL_DRAFT_PR_BODY: ${{ steps.additional-draft-pr-body.outputs.TEXT }}
