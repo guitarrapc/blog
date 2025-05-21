@@ -11,7 +11,7 @@ on:
 
 jobs:
   upload-image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     outputs:
       revision: ${{ steps.commit-and-push.outputs.revision }}
