@@ -19,7 +19,8 @@ on:
 jobs:
   post_draft_and_pull_from_hatenablog:
     name: create draft and pull from hatenablog
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     env:
       BLOGSYNC_PASSWORD: ${{ secrets.OWNER_API_KEY }}
     steps:
@@ -53,4 +54,3 @@ jobs:
           draft: ${{ inputs.draft }}
           BLOG_DOMAIN: ${{ steps.set-domain.outputs.BLOG_DOMAIN }}
           ENTRY_PATH: ${{ steps.post-draft.outputs.ENTRY_PATH }}
-          ADDTIONAL_DRAFT_PR_BODY: ${{ steps.additional-draft-pr-body.outputs.TEXT }}
