@@ -1,7 +1,7 @@
 {
   "recommendations": [
-    "taichi.vscode-textlint",
     "bpruitt-goddard.mermaid-markdown-syntax-highlighting",
-    "bierner.markdown-mermaid"
+    "bierner.markdown-mermaid",
+    "3w36zj6.textlint"
   ]
 }
