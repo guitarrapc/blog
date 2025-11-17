@@ -112,8 +112,6 @@ https://devtron.example/orchestrator/api/dex/.well-known/openid-configuration
 ```
 
 
----
-
 [f:id:guitarrapc_tech:20251118000902p:plain:alt=alt text]
 
 
@@ -121,7 +119,6 @@ https://devtron.example/orchestrator/api/dex/.well-known/openid-configuration
 
 [f:id:guitarrapc_tech:20251118000915p:plain:alt=alt text]
 
----
 
 [f:id:guitarrapc_tech:20251118000925p:plain:alt=alt text]
 

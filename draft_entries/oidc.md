@@ -90,16 +90,12 @@ https://devtron.example.com/orchestrator/api/dex/.well-known/openid-configuratio
 ```
 
 
----
-
 [f:id:guitarrapc_tech:20251118000951p:plain:alt=alt text]
 
 
 [f:id:guitarrapc_tech:20251118000957p:plain:alt=alt text]
 
 [f:id:guitarrapc_tech:20251118001005p:plain:alt=alt text]
-
----
 
 [f:id:guitarrapc_tech:20251118001015p:plain:alt=alt text]
 
