@@ -32,9 +32,9 @@ DevtronはこれらをDevtronから提供、UIも一元化することで、Kube
 
 
 
-![alt text](image.png)
+[f:id:guitarrapc_tech:20251118000845p:plain:alt=alt text]
 
-![alt text](image-1.png)
+[f:id:guitarrapc_tech:20251118000853p:plain:alt=alt text]
 
 URL: https://devtron.example.com/orchestrator
 
@@ -114,17 +114,17 @@ https://devtron.example/orchestrator/api/dex/.well-known/openid-configuration
 
 ---
 
-![alt text](image-7.png)
+[f:id:guitarrapc_tech:20251118000902p:plain:alt=alt text]
 
 
-![alt text](image-2.png)
+[f:id:guitarrapc_tech:20251118000908p:plain:alt=alt text]
 
-![alt text](image-3.png)
+[f:id:guitarrapc_tech:20251118000915p:plain:alt=alt text]
 
 ---
 
-![alt text](image-4.png)
+[f:id:guitarrapc_tech:20251118000925p:plain:alt=alt text]
 
-![alt text](image-5.png)
+[f:id:guitarrapc_tech:20251118000934p:plain:alt=alt text]
 
-![alt text](image-6.png)
+[f:id:guitarrapc_tech:20251118000942p:plain:alt=alt text]

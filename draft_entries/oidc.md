@@ -92,17 +92,17 @@ https://devtron.example.com/orchestrator/api/dex/.well-known/openid-configuratio
 
 ---
 
-![alt text](image-7.png)
+[f:id:guitarrapc_tech:20251118000951p:plain:alt=alt text]
 
 
-![alt text](image-2.png)
+[f:id:guitarrapc_tech:20251118000957p:plain:alt=alt text]
 
-![alt text](image-3.png)
+[f:id:guitarrapc_tech:20251118001005p:plain:alt=alt text]
 
 ---
 
-![alt text](image-4.png)
+[f:id:guitarrapc_tech:20251118001015p:plain:alt=alt text]
 
-![alt text](image-5.png)
+[f:id:guitarrapc_tech:20251118001023p:plain:alt=alt text]
 
-![alt text](image-6.png)
+[f:id:guitarrapc_tech:20251118001033p:plain:alt=alt text]
