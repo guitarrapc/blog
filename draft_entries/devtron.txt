@@ -1,0 +1,127 @@
+Devtronを使ったKubernetesの新しい運用方法
+
+Kubernetesはいわゆるコンテナオーケストレーターですが、そのまま素で使っている人はどれだけいるでしょうか。
+かくいう私もHelmチャートを使ってKubernetesクラスターに様々なコントローラーを導入したり、ArgoCDを使ってGitOps運用したり、HeadlampやDatadogでモニタリングしたりと、Kubernetesの上にさらに様々なツールを載せて運用しています。
+
+そう、Kubernetesを運用するために多くのツールを組み合わせて、またクラウドとも連携してようやく本格的な運用ができる、運用の難しさこそがKubernetesの難しさたる一面であることは疑いようがないでしょう。普段運用していると気づきにくいですが、ふと振り返ったり、誰かに説明するときに割と本当に難しいと感じます。
+そもそもコンテナの知識、それを運用するオーケストレーターの知識、クラウドと連携する方法、DNSやクラウドリースやセキュリティ、監視などなど、Kubernetesを運用するには多くの知識が必要です。
+この状況はKubernetesが登場して以来、複雑になる一方で、初心者がKubernetesを使い始めるのは非常にハードル高い状態が続いています。
+
+そんなKubernetesの運用に必要な機能をオールインワンで提供するプラットフォームがいくつか登場しています。今回紹介するDevtronもその1つです。
+
+[:contents]
+
+## Devtronの目指すところ
+
+> Devtron is purpose-built for production Kubernetes teams, unifying app and infrastructure management with an AI teammate that simplifies operations and speeds delivery.
+
+これはDevtronの謳い文句ですが、DevtronはKubernetesのアプリケーションとインフラ管理を統合しAIアシスタントが運用を簡素化し、デリバリーを加速することを目的としています。
+
+実際のところ、触ってみるとこれはなかなか難しいことをやっているなと感じます。DevtronはKubernetesの上に様々な機能を提供しており、アプリケーションのデプロイから監視、セキュリティまで幅広くカバーしています。具体的には、複数のOSSを組み合わせて、またDevtronから展開することで達成しようとしています。
+
+代表的な機能は以下の通りです。
+
+- CI/CD統合 = ArgoCDやFluxをDevtronが制御して、デプロイ履歴やデプロイ問題をAIが検知、自動ロールバック
+- セキュリティ統合 = イメージやマニフェストの素スキャン、シークレットがコードやコンフィグに露出していないかチェック、シップ前にライセンススキャン
+- Observability = PrometheusやGrafanaをDevtron UIに組み込んで監視を一か所から提供
+- コスト管理 = コストを環境単位でモニタリング、AIによるサイジングや異常検出
+
+DevtronはこれらをDevtronから提供、UIも一元化することで、Kubernetesの運用を大幅に簡素化しようとしています。
+
+##
+
+
+
+[f:id:guitarrapc_tech:20251118000845p:plain:alt=alt text]
+
+[f:id:guitarrapc_tech:20251118000853p:plain:alt=alt text]
+
+URL: https://devtron.example.com/orchestrator
+
+
+```yaml
+name: cognito
+id: cognito
+config:
+ claimMapping:
+  groups: cognito:groups
+ clientID: ••••••••
+ clientSecret: ••••••••
+ issuer: https://cognito-idp.REGION.amazonaws.com/USER-POOL-ID
+ redirectURI: https://devtron.example.com/orchestrator/api/dex/callback
+ scopes:
+  - openid
+  - email
+  - profile
+ userNameKey: cognito:username
+```
+
+https://devtron.example/orchestrator/api/dex/.well-known/openid-configuration
+
+```json
+{
+  "issuer": "https://devtron.example.com/orchestrator/api/dex",
+  "authorization_endpoint": "https://devtron.example.com/orchestrator/api/dex/auth",
+  "token_endpoint": "https://devtron.example.com/orchestrator/api/dex/token",
+  "jwks_uri": "https://devtron.example.com/orchestrator/api/dex/keys",
+  "userinfo_endpoint": "https://devtron.example.com/orchestrator/api/dex/userinfo",
+  "device_authorization_endpoint": "https://devtron.example.com/orchestrator/api/dex/device/code",
+  "grant_types_supported": [
+    "authorization_code",
+    "refresh_token",
+    "urn:ietf:params:oauth:grant-type:device_code"
+  ],
+  "response_types_supported": [
+    "code"
+  ],
+  "subject_types_supported": [
+    "public"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ],
+  "code_challenge_methods_supported": [
+    "S256",
+    "plain"
+  ],
+  "scopes_supported": [
+    "openid",
+    "email",
+    "groups",
+    "profile",
+    "offline_access"
+  ],
+  "token_endpoint_auth_methods_supported": [
+    "client_secret_basic",
+    "client_secret_post"
+  ],
+  "claims_supported": [
+    "iss",
+    "sub",
+    "aud",
+    "iat",
+    "exp",
+    "email",
+    "email_verified",
+    "locale",
+    "name",
+    "preferred_username",
+    "at_hash"
+  ]
+}
+```
+
+
+[f:id:guitarrapc_tech:20251118000902p:plain:alt=alt text]
+
+
+[f:id:guitarrapc_tech:20251118000908p:plain:alt=alt text]
+
+[f:id:guitarrapc_tech:20251118000915p:plain:alt=alt text]
+
+
+[f:id:guitarrapc_tech:20251118000925p:plain:alt=alt text]
+
+[f:id:guitarrapc_tech:20251118000934p:plain:alt=alt text]
+
+[f:id:guitarrapc_tech:20251118000942p:plain:alt=alt text]
