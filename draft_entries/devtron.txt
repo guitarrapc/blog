@@ -32,9 +32,9 @@ DevtronはこれらをDevtronから提供、UIも一元化することで、Kube
 
 
 
-[f:id:guitarrapc_tech:20251118000845p:plain:alt=alt text]
+[f:id:guitarrapc_tech:20251118000845p:plain:alt=alt text]<!--image.png-->
 
-[f:id:guitarrapc_tech:20251118000853p:plain:alt=alt text]
+[f:id:guitarrapc_tech:20251118000853p:plain:alt=alt text]<!--image-1.png-->
 
 URL: https://devtron.example.com/orchestrator
 
@@ -66,36 +66,36 @@ https://devtron.example/orchestrator/api/dex/.well-known/openid-configuration
   "jwks_uri": "https://devtron.example.com/orchestrator/api/dex/keys",
   "userinfo_endpoint": "https://devtron.example.com/orchestrator/api/dex/userinfo",
   "device_authorization_endpoint": "https://devtron.example.com/orchestrator/api/dex/device/code",
-  "grant_types_supported": [
+  "grant_types_supported":[
     "authorization_code",
     "refresh_token",
-    "urn:ietf:params:oauth:grant-type:device_code"
-  ],
-  "response_types_supported": [
+    "urn:ietf:params:OAuth:grant-type:device_code"
+],
+  "response_types_supported":[
     "code"
-  ],
-  "subject_types_supported": [
+],
+  "subject_types_supported":[
     "public"
-  ],
-  "id_token_signing_alg_values_supported": [
+],
+  "id_token_signing_alg_values_supported":[
     "RS256"
-  ],
-  "code_challenge_methods_supported": [
+],
+  "code_challenge_methods_supported":[
     "S256",
     "plain"
-  ],
-  "scopes_supported": [
+],
+  "scopes_supported":[
     "openid",
     "email",
     "groups",
     "profile",
     "offline_access"
-  ],
-  "token_endpoint_auth_methods_supported": [
+],
+  "token_endpoint_auth_methods_supported":[
     "client_secret_basic",
     "client_secret_post"
-  ],
-  "claims_supported": [
+],
+  "claims_supported":[
     "iss",
     "sub",
     "aud",
@@ -107,21 +107,21 @@ https://devtron.example/orchestrator/api/dex/.well-known/openid-configuration
     "name",
     "preferred_username",
     "at_hash"
-  ]
+]
 }
 ```
 
 
-[f:id:guitarrapc_tech:20251118000902p:plain:alt=alt text]
+[f:id:guitarrapc_tech:20251118000902p:plain:alt=alt text]<!--image-7.png-->
 
 
-[f:id:guitarrapc_tech:20251118000908p:plain:alt=alt text]
+[f:id:guitarrapc_tech:20251118000908p:plain:alt=alt text]<!--image-2.png-->
 
-[f:id:guitarrapc_tech:20251118000915p:plain:alt=alt text]
+[f:id:guitarrapc_tech:20251118000915p:plain:alt=alt text]<!--image-3.png-->
 
 
-[f:id:guitarrapc_tech:20251118000925p:plain:alt=alt text]
+[f:id:guitarrapc_tech:20251118000925p:plain:alt=alt text]<!--image-4.png-->
 
-[f:id:guitarrapc_tech:20251118000934p:plain:alt=alt text]
+[f:id:guitarrapc_tech:20251118000934p:plain:alt=alt text]<!--image-5.png-->
 
-[f:id:guitarrapc_tech:20251118000942p:plain:alt=alt text]
+[f:id:guitarrapc_tech:20251118000942p:plain:alt=alt text]<!--image-6.png-->
