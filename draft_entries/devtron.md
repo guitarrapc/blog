@@ -205,6 +205,6 @@ devtroncd   postgresql-migrate-lens-jwyyd-b4hzg        0/1     Completed   0    
 devtroncd   postgresql-postgresql-0                    2/2     Running     0             39m
 ```
 
-![alt text](image-9.png)<!--image-9.png-->
+[f:id:guitarrapc_tech:20251118194600p:plain:alt=alt text]<!--image-9.png-->
 
-![alt text](image-8.png)<!--image-8.png-->
+[f:id:guitarrapc_tech:20251118194610p:plain:alt=alt text]<!--image-8.png-->
