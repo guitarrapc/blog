@@ -16,7 +16,7 @@ nvm use lts
 textlintと各種ルールをセットアップします。
 
 ```shell
-npm install --save-dev textlint textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet textlint-rule-period-in-list-item textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word textlint-filter-rule-comments
+npm install --save-dev textlint textlint-rule-no-mixed-zenkaku-and-hankaku-alphabet textlint-rule-period-in-list-item textlint-rule-preset-ai-writing textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word textlint-filter-rule-comments
 ```
 
 VS Codeの拡張機能をインストールします。
