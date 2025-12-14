@@ -29,6 +29,7 @@
         "max": 300
       }
     },
-    "spellcheck-tech-word": true
+    "spellcheck-tech-word": true,
+    "preset-ai-writing": true
   }
 }
