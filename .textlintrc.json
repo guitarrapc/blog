@@ -5,6 +5,7 @@
   },
   "rules": {
     "no-mixed-zenkaku-and-hankaku-alphabet": true,
+    "preset-ai-writing": true,
     "period-in-list-item": true,
     "preset-ja-spacing": {
       "ja-nakaguro-or-halfwidth-space-between-katakana": true,
@@ -29,7 +30,6 @@
         "max": 300
       }
     },
-    "spellcheck-tech-word": true,
-    "preset-ai-writing": true
+    "spellcheck-tech-word": true
   }
 }
