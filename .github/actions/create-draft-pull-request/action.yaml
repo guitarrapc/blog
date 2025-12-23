@@ -54,17 +54,11 @@ runs:
         GH_TOKEN: ${{ github.token }}
       run: |
         pr_template=$(gh repo view --json pullRequestTemplates | jq -r '.pullRequestTemplates | [map(select(.filename == "draft.md"))[0], map(select(.filename == "PULL_REQUEST_TEMPLATE.md"))[0]] | map(select(. != null)) | first | .body // empty')
-        if [[ -z "$pr_template" ]]; then
-          pr_template=$(cat<<'EOF'
-        ## ${TITLE}
-
-        - 編集ページのURL: ${EDIT_URL}
-        - プレビューへのURL: ${PREVIEW_URL}
-
-        EOF
-          )
-        fi
         echo "PULL_REQUEST_TEMPLATE<<EOF" >> $GITHUB_OUTPUT
+        echo '## ${TITLE}' >> $GITHUB_OUTPUT
+        echo '- 編集ページのURL: ${EDIT_URL}' >> $GITHUB_OUTPUT
+        echo '- プレビューへのURL: ${PREVIEW_URL}' >> $GITHUB_OUTPUT
+        echo '' >> $GITHUB_OUTPUT
         echo "$pr_template" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
       shell: bash
@@ -82,11 +76,42 @@ runs:
         echo "${PR_TEMPLATE}" | envsubst '${TITLE} ${EDIT_URL} ${PREVIEW_URL} ${OWNER_NAME} ${ENTRY_ID}' >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
       shell: bash
-    - name: create draft pull request
-      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
-      with:
-        title: ${{ inputs.title }}
-        branch: draft-entry-${{ steps.set-entry-variables.outputs.ENTRY_ID }}
-        body: ${{ steps.prepare-pull-request-body.outputs.PULL_REQUEST_BODY }}
-        delete-branch: true
-        draft: ${{ inputs.draft == 'true' }}
+    - name: commit
+      shell: bash
+      run: |
+        git remote set-url origin "https://github-actions:${GITHUB_TOKEN}@github.com/${{ github.repository }}"
+        git config user.name github-actions[bot]
+        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+        git checkout -b "${BRANCH_NAME}"
+        git add .
+        git commit -m "[create-pull-request] automated change by $GITHUB_WORKFLOW" || true
+        git push -u origin "${BRANCH_NAME}" --force
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
+        GITHUB_WORKFLOW: ${{ github.workflow }}
+        BRANCH_NAME: draft-entry-${{ steps.set-entry-variables.outputs.ENTRY_ID }}
+    - name: Create PullRequest
+      shell: bash
+      run: |
+        pr_exists=$(gh pr list --head "${BRANCH_NAME}" --base "${{ github.event.repository.default_branch}}")
+        if [ -n "$pr_exists" ]; then
+          echo "PR already exists for  -> ${BRANCH_NAME}. Skipping creation."
+          exit 0
+        fi
+
+        cat << 'EOF' > pr_body.txt
+        ${{ steps.prepare-pull-request-body.outputs.PULL_REQUEST_BODY }}
+
+        ---
+
+        This PR was created automatically via [${{ github.workflow }}]($GITHUB_ACTIONS_RUN_URL), job [link]($GITHUB_ACTIONS_JOB_URL)._
+        EOF
+
+        gh pr create --title "${TITLE}" --body-file "./pr_body.txt" --draft
+      env:
+        BRANCH_NAME: draft-entry-${{ steps.set-entry-variables.outputs.ENTRY_ID }}
+        GH_TOKEN: ${{ github.TOKEN }}
+        GITHUB_ACTIONS_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        GITHUB_ACTIONS_JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs/${{ job.check_run_id }}
+        TITLE: ${{ inputs.title }}
