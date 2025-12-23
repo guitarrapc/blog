@@ -105,7 +105,7 @@ runs:
 
         ---
 
-        This PR was created automatically via [${{ github.workflow }}]($GITHUB_ACTIONS_RUN_URL), job [link]($GITHUB_ACTIONS_JOB_URL)._
+        This PR was created automatically via [${{ github.workflow }}](${{ env.GITHUB_ACTIONS_RUN_URL}}), job [link](${{ env.GITHUB_ACTIONS_JOB_URL}}).
         EOF
 
         gh pr create --title "${TITLE}" --body-file "./pr_body.txt" --draft
