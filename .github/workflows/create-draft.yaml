@@ -9,6 +9,9 @@ on:
 
 jobs:
   create-draft:
+    permissions:
+      contents: write
+      pull-requests: write
     # uses: hatena/hatenablog-workflows/.github/workflows/create-draft.yaml@f42256332f4838de9799dbed0b1ac6d3ce2224f2 # v1.3.3
     uses: ./.github/workflows/_create-draft.yaml
     with:

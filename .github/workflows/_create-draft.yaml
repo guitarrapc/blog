@@ -19,6 +19,9 @@ on:
 jobs:
   post_draft_and_pull_from_hatenablog:
     name: create draft and pull from hatenablog
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:

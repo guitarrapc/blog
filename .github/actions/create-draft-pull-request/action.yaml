@@ -48,64 +48,45 @@ runs:
       shell: bash
     - name: move draft and update metadata
       uses: hatena/hatenablog-workflows/.github/actions/move-draft-and-update-metadata@1e932419b6749d6b4ad3d0e30d07df87a1ed3c3e # v1.3.4
-    - name: create draft pull request
-      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+    - name: get pull request template
+      id: get-pull-request-template
       env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        pr_template=$(gh repo view --json pullRequestTemplates | jq -r '.pullRequestTemplates | [map(select(.filename == "draft.md"))[0], map(select(.filename == "PULL_REQUEST_TEMPLATE.md"))[0]] | map(select(. != null)) | first | .body // empty')
+        if [[ -z "$pr_template" ]]; then
+          pr_template=$(cat<<'EOF'
+        ## ${TITLE}
+
+        - 編集ページのURL: ${EDIT_URL}
+        - プレビューへのURL: ${PREVIEW_URL}
+
+        EOF
+          )
+        fi
+        echo "PULL_REQUEST_TEMPLATE<<EOF" >> $GITHUB_OUTPUT
+        echo "$pr_template" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+      shell: bash
+    - name: prepare pull request body
+      id: prepare-pull-request-body
+      env:
+        TITLE: ${{ inputs.title }}
+        EDIT_URL: ${{ steps.set-entry-variables.outputs.EDIT_URL }}
         OWNER_NAME: ${{ steps.set-owner.outputs.OWNER_NAME }}
         ENTRY_ID: ${{ steps.set-entry-variables.outputs.ENTRY_ID }}
-        PREVIEW_URL: ${{ steps.set-entry-variables.outputs.PREVIEW_URL }}
+        PREVIEW_URL: ${{ steps.set-entry-variables.outputs.PREVIEW_URL == 'null' && 'なし' || steps.set-entry-variables.outputs.PREVIEW_URL }}
+        PR_TEMPLATE: ${{ steps.get-pull-request-template.outputs.PULL_REQUEST_TEMPLATE }}
+      run: |
+        echo "PULL_REQUEST_BODY<<EOF" >> $GITHUB_OUTPUT
+        echo "${PR_TEMPLATE}" | envsubst '${TITLE} ${EDIT_URL} ${PREVIEW_URL} ${OWNER_NAME} ${ENTRY_ID}' >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+      shell: bash
+    - name: create draft pull request
+      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
       with:
         title: ${{ inputs.title }}
-        branch: draft-entry-${{ env.ENTRY_ID }}
-        body: |
-          ## ${{ inputs.title }}
-
-          - 編集ページのURL: https://blog.hatena.ne.jp/${{ env.OWNER_NAME }}/${{ inputs.BLOG_DOMAIN }}/edit?entry=${{ env.ENTRY_ID }}
-          - プレビューへのURL: ${{ env.PREVIEW_URL == 'null' && 'なし' || env.PREVIEW_URL }}
-
-          ## レビューに関して
-
-          レビューする際には、以下のprefix(接頭辞)を付けましょう。
-
-          <!-- for GitHub Copilot review rule -->
-          [must]→ かならず変更してね
-          [imo]→ 自分の意見だとこうだけど修正必須ではないよ(in my opinion)
-          [nits]→ ささいな指摘(nitpick)
-          [ask]→ 質問
-          [fyi]→ 参考情報
-          <!-- for GitHub Copilot review rule-->
-
-          <!-- for GitHub Copilot review structure -->
-
-          ブログ記事は次の構造です。
-
-          | パス | レビュー対象 | 概要 |
-          | --- | --- | --- |
-          | draft_entries/**.md | レビュー対象です | 下書きのブログ記事です |
-          | entries/**.md | レビュー対象です | すでに公開されているブログ記事です |
-
-          <!-- for GitHub Copilot review structure -->
-
-          <!-- for GitHub Copilot review keypoint -->
-
-          レビューは以下のルールに従ってください。
-
-          - レビューは日本語で行ってください
-          - 指摘、修正に至った理由や背景を説明してください
-          - 記事タイトルはメタセクションのTitleを参照してください
-          - 下書きブログ記事のタイトルが内容を要約したものか評価し、煽る表現は抑制しつつもより良いタイトル案があれば提案してください
-          - 公開されているブログ記事のタイトルは変更しないでください
-          - 内容に著しい誤りや誤解が見受けられる場合は指摘し、修正を提案してください
-          - 文章が分かりにくい、不明瞭、冗長な場合は指摘し、修正を提案してください
-
-          文章の校正は以下のルールに従ってください。
-
-          - textlintの文章の校正に従ってください
-          - textlintは、package.json及び.textlintrc.jsonにルールが定義されているので参照してください
-          - 提示する修正文章は、textlintのルールに従ってください
-          - 例えば英語や製品名と「日本語の助詞」の間にスペースは含めません
-
-          <!-- for GitHub Copilot review keypoint -->
-
+        branch: draft-entry-${{ steps.set-entry-variables.outputs.ENTRY_ID }}
+        body: ${{ steps.prepare-pull-request-body.outputs.PULL_REQUEST_BODY }}
         delete-branch: true
         draft: ${{ inputs.draft == 'true' }}
