@@ -25,6 +25,9 @@
       "max-comma": {
         "max": 5
       },
+      "max-kanji-continuous-len": {
+        "max": 8
+      },
       "no-exclamation-question-mark": false,
       "sentence-length": {
         "max": 300
