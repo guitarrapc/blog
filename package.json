@@ -18,6 +18,7 @@
     "lint2023": "npx textlint ./entries/guitarrapc-tech.hatenablog.com/entry/2023/**/*.md",
     "lint2024": "npx textlint ./entries/guitarrapc-tech.hatenablog.com/entry/2024/**/*.md",
     "lint2025": "npx textlint ./entries/guitarrapc-tech.hatenablog.com/entry/2025/**/*.md",
+    "lint2026": "npx textlint ./entries/guitarrapc-tech.hatenablog.com/entry/2026/**/*.md",
     "fix": "npx textlint --fix ./entries/guitarrapc-tech.hatenablog.com/entry/**/*.md",
     "fixdraft": "npx textlint --fix ./draft_entries/*.md",
     "fix2012": "npx textlint --fix ./entries/guitarrapc-tech.hatenablog.com/entry/2012/**/*.md",
@@ -33,7 +34,8 @@
     "fix2022": "npx textlint --fix ./entries/guitarrapc-tech.hatenablog.com/entry/2022/**/*.md",
     "fix2023": "npx textlint --fix ./entries/guitarrapc-tech.hatenablog.com/entry/2023/**/*.md",
     "fix2024": "npx textlint --fix ./entries/guitarrapc-tech.hatenablog.com/entry/2024/**/*.md",
-    "fix2025": "npx textlint --fix ./entries/guitarrapc-tech.hatenablog.com/entry/2025/**/*.md"
+    "fix2025": "npx textlint --fix ./entries/guitarrapc-tech.hatenablog.com/entry/2025/**/*.md",
+    "fix2026": "npx textlint --fix ./entries/guitarrapc-tech.hatenablog.com/entry/2026/**/*.md"
   },
   "name": "blog",
   "description": "GitHubとはてなブログの連携用環境の文書校正をtextlintで行います",
