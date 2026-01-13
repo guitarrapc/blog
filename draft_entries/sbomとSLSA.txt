@@ -72,6 +72,18 @@ https://www.cisa.gov/sites/default/files/2025-08/2025_CISA_SBOM_Minimum_Elements
 
 ---
 
+sbom検証ツールの一つが、[sbom-tool](https://github.com/microsoft/sbom-tool)。これは.NET向けに[Microsoft.Sbom.Tool](https://www.nuget.org/packages/Microsoft.Sbom.Tool/)パッケージも用意している。
+
+```
+dotnet tool install --global Microsoft.Sbom.DotNetTool
+```
+
+使い方。
+
+https://github.com/copilot/c/c8578d6a-f121-4e52-98ea-8933bedfab19
+
+---
+
 nugetのSBOMはライセンスが入らないっぽい。
 
 https://github.com/microsoft/sbom-tool/issues/718
@@ -1461,6 +1473,37 @@ https://github.com/microsoft/sbom-tool/issues/718
 
 ```shell
 sbom-tool generate -b .\src\SkiaSharp.QrCode\bin\Release\net10.0 -bc . -pn SkiaSharp.QrCode -pv 0.13.0 -ps guitarrapc -li true -pm true
+                                                          Detection Summary
+┌────────────────────────────────┬────────────────────────────────┬────────────────────────────────┬────────────────────────────────┐
+│ Component Detector Id          │ Detection Time                 │ # Components Found             │ # Explicitly Referenced        │
+├────────────────────────────────┼────────────────────────────────┼────────────────────────────────┼────────────────────────────────┤
+│ CocoaPods                      │ 0.21 seconds                   │ 0                              │ 0                              │
+│ ConanLock                      │ 0.15 seconds                   │ 0                              │ 0                              │
+│ DotNet                         │ 0.9 seconds                    │ 6                              │ 0                              │
+│ Go                             │ 0.21 seconds                   │ 0                              │ 0                              │
+│ Gradle                         │ 0.21 seconds                   │ 0                              │ 0                              │
+│ Ivy (Beta)                     │ 0.21 seconds                   │ 0                              │ 0                              │
+│ Linux                          │ 0.0046 seconds                 │ 0                              │ 0                              │
+│ LinuxApplicationLayer (Beta)   │ 0.0044 seconds                 │ 0                              │ 0                              │
+│ MvnCli                         │ 0.18 seconds                   │ 0                              │ 0                              │
+│ Npm                            │ 0.15 seconds                   │ 0                              │ 0                              │
+│ NpmLockfile3                   │ 0.15 seconds                   │ 0                              │ 0                              │
+│ NpmWithRoots                   │ 0.15 seconds                   │ 0                              │ 0                              │
+│ NuGet                          │ 0.15 seconds                   │ 1                              │ 0                              │
+│ NuGetPackagesConfig            │ 0.15 seconds                   │ 0                              │ 0                              │
+│ NuGetProjectCentric            │ 0.23 seconds                   │ 140                            │ 34                             │
+│ PipReport                      │ 2.1 seconds                    │ 0                              │ 0                              │
+│ Pnpm                           │ 0.15 seconds                   │ 0                              │ 0                              │
+│ Poetry (Beta)                  │ 0.15 seconds                   │ 0                              │ 0                              │
+│ Ruby                           │ 0.15 seconds                   │ 0                              │ 0                              │
+│ RustSbom                       │ 0.15 seconds                   │ 0                              │ 0                              │
+│ SPDX22SBOM                     │ 0.15 seconds                   │ 0                              │ 0                              │
+│ UvLock (Beta)                  │ 0.15 seconds                   │ 0                              │ 0                              │
+│ Vcpkg                          │ 0.15 seconds                   │ 0                              │ 0                              │
+│ Yarn                           │ 0.15 seconds                   │ 0                              │ 0                              │
+│ ────────────────────────────── │ ────────────────────────────── │ ────────────────────────────── │ ────────────────────────────── │
+│ Total                          │ 2.2 seconds                    │ 147                            │ 34                             │
+└────────────────────────────────┴────────────────────────────────┴────────────────────────────────┴────────────────────────────────┘
 ```
 
 ```json
@@ -5951,9 +5994,18 @@ sbom-tool generate -b .\src\SkiaSharp.QrCode\bin\Release\net10.0 -bc . -pn SkiaS
 
 ---
 
-MSBuildTaskのsbom-toolがライセンス周り出力できないバグ放置だったので、いったんPR投げた。直ってくれるとdotnet packでsbom生成したときライセンスも取れるようになってうれしいんですが果たして... (ライセンスチェックにsbom使えるので、sbom-tool を直実行してもいい気もします)
+sbom-toolだが、csprojに仕込んで動く[Microsoft.Sbom.Targets](https://github.com/microsoft/sbom-tool/tree/fd23d6333c92bfc14f0e2c8af6681d178716c345/src/Microsoft.Sbom.Targets)にライセンス情報を出力する設定が無視されるバグがあった。
+
+https://github.com/microsoft/sbom-tool/issues/718
+
+ここを設定しても内部でsbom-toolにパラメーターを渡していない。
+> https://github.com/microsoft/sbom-tool/blob/c83b43dee2dd70b4d6ba16a97cde6b43f971d9c3/src/Microsoft.Sbom.Targets/Microsoft.Sbom.Targets.targets#L28
+
+修正PRを投げた。
 
 https://github.com/microsoft/sbom-tool/pull/1384
+
+直ってくれるとdotnet packでsbom生成したときライセンスも取れるようになってうれしいんですが果たして... (ライセンスチェックにsbom使えるので、sbom-tool を直実行してもいい気もします)
 
 外部コントリビューターからのPRはセキュリティ要件から受け付けてなかった。
 

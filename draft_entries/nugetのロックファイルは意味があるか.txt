@@ -1,0 +1,17 @@
+NuGetはロックファイル(packages.lock.json)を用いてリストアする機能がある。
+
+ロックファイルは、レンジ指定の場合に有効。このため、npmでは必須レベルで利用されている。
+
+一方、NuGetの文化としてレンジ指定することがなく、バージョンを直接指定する。また、競合があった場合、最も低いバージョンを選ぶよう解決される。(最も高いバージョンじゃない)
+このためロックファイルがなくとも、csprojやDirectory.Packages.propsでバージョンが指定されている限りはdeterministicにバージョンが決定される。
+
+https://www.reddit.com/r/dotnet/comments/1duas98/do_you_protect_your_nuget_config_against_supply/?tl=ja
+
+また、SBOMの視点から見ると、ロックファイル packages.lock.jsonはSource SBOMであって補助的な役割に過ぎない。
+重要なのはBuild SBOMでありこれに用いる deps.jsonはC# でもビルド時にobj/フォルダに出力されている。
+事前にどういうパッケージが入るかの予定を示すロックファイルは、C#においてはあまり使われておらず、デフォルトもそれによってないのは文化的に納得がいくものがある。
+
+
+なお、C#でバージョン直指定なのはNuGetのUI/UXがそうであることが要因にありそう。
+`dotnet package add`でもバージョンを指定するし、Visual StudioやRiderのNuGet Package Managerでパッケージを選んだ時もバージョンが指定される。
+バージョン指定をするには.csprojを直接手で編集する必要があり、これはほとんどの人が行っていない。
