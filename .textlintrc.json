@@ -1,12 +1,7 @@
 {
   "plugins": {},
   "filters": {
-    "comments": true,
-    "whitelist": {
-      "allow": [
-        "サプライチェーン"
-      ]
-    }
+    "comments": true
   },
   "rules": {
     "no-mixed-zenkaku-and-hankaku-alphabet": true,
