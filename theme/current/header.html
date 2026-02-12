@@ -1,32 +1,833 @@
-<!-- Cookie Policy for Google Analytics -->
-<link rel="stylesheet" type="text/css"
-    href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css" />
-<script src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js"></script>
-<script>
-    window.addEventListener("load", function () {
-        window.cookieconsent.initialise({
-            "palette": {
-                "popup": {
-                    "background": "#252e39"
-                },
-                "button": {
-                    "background": "#14a7d0"
-                }
-            },
-            "theme": "edgeless",
-            "content": {
-                "href": "https://tech.guitarrapc.com/cookie-policy"
-            }
-        })
-    });
-</script>
-
-<!-- Goolge Web Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href='https://fonts.googleapis.com/css?family=Kaushan+Script' rel='stylesheet'>
-<link href='https://fonts.googleapis.com/css?family=Merienda+One' rel='stylesheet'>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
 
-<!-- go top -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<script type="text/javascript">
+  /**
+   * コードブロック機能（コピー & 折り返し切り替え）を提供するスクリプト
+   */
+  (function () {
+    'use strict';
+    document.addEventListener('DOMContentLoaded', function () {
+      // コードブロックを全て取得
+      const codeBlocks = document.querySelectorAll('pre.code');
+
+      // 各コードブロックにボタンを追加
+      codeBlocks.forEach(function (codeBlock) {
+        // コードブロック用のラッパーを作成
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+
+        // コピーボタンを作成
+        const copyButton = document.createElement('button');
+        copyButton.className = 'code-copy-button';
+        copyButton.removeAttribute('title'); // 初期状態ではタイトル属性を削除
+        copyButton.setAttribute('aria-label', 'Copy code');
+
+        // 折り返し切り替えボタンを作成
+        const wrapToggleButton = document.createElement('button');
+        wrapToggleButton.className = 'code-wrap-toggle';
+        wrapToggleButton.title = 'Toggle Wrap';
+        wrapToggleButton.setAttribute('aria-label', 'Toggle code wrapping');
+
+        // コードブロックを親要素から取り出して、ラッパーに移動
+        const parent = codeBlock.parentNode;
+        parent.insertBefore(wrapper, codeBlock);
+        wrapper.appendChild(codeBlock);
+
+        // 初期状態は折り返しなし (デフォルト)
+        codeBlock.classList.add('nowrap');
+
+        // ラッパーにボタンを追加（順番重要: 右からコピー、折り返し）
+        wrapper.appendChild(copyButton);
+        wrapper.appendChild(wrapToggleButton);
+
+        // コピーボタンのクリックイベントを設定
+        copyButton.addEventListener('click', function () {
+          // コピーする前にボタンテキストを一時的に隠す
+          const originalDisplay = copyButton.style.display;
+          copyButton.style.display = 'none';
+
+          // コードブロックのテキストを取得
+          const code = codeBlock.textContent;
+
+          // ボタンの表示を元に戻す
+          copyButton.style.display = originalDisplay;
+
+          // クリップボードにコピー
+          navigator.clipboard.writeText(code).then(function () {
+            // コピー成功
+            copyButton.title = 'Copied';
+            copyButton.classList.add('copied');
+
+            // 一定時間後に元に戻す
+            setTimeout(function () {
+              copyButton.removeAttribute('title'); // タイトル属性を削除
+              copyButton.classList.remove('copied');
+            }, 2000);
+          }).catch(function (err) {
+            // コピー失敗
+            console.error('Copy failed:', err);
+            copyButton.title = 'Copy failed';
+            copyButton.classList.add('copy-error');
+
+            // 一定時間後に元に戻す
+            setTimeout(function () {
+              copyButton.removeAttribute('title'); // タイトル属性を削除
+              copyButton.classList.remove('copy-error');
+            }, 2000);
+          });
+        });
+
+        // 折り返し切り替えボタンのクリックイベントを設定
+        wrapToggleButton.addEventListener('click', function () {
+          codeBlock.classList.toggle('nowrap');
+          codeBlock.classList.toggle('wrap');
+
+          // ボタンのツールチップを更新
+          if (codeBlock.classList.contains('nowrap')) {
+            wrapToggleButton.title = 'Enable Wrap';
+          } else {
+            wrapToggleButton.title = 'Disable Wrap';
+          }
+        });
+      });
+    });
+  })();
+</script>
+
+<style>
+  /* コードブロックのラッパー要素 */
+  .code-block-wrapper {
+    position: relative;
+    margin: 1em 0;
+  }
+
+  /* コードブロック自体のスタイル調整 */
+  .code-block-wrapper pre.code {
+    margin: 0;
+  }
+
+  /* 折り返しなしのコードブロック (デフォルト) */
+  .code-block-wrapper pre.code.nowrap {
+    white-space: pre;
+    overflow-x: auto;
+    text-overflow: initial;
+  }
+
+  /* 折り返しありのコードブロック */
+  .code-block-wrapper pre.code.wrap {
+    white-space: pre-wrap;
+    overflow-x: visible;
+  }
+
+  /* コードブロックボタン共通のスタイル */
+  .code-copy-button,
+  .code-wrap-toggle {
+    position: absolute;
+    top: 0rem;
+    margin: 15px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background-color: var(--bg-code-light, #1a2737);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 18px 18px;
+    border: 1px solid var(--bg-code-light, #1a2737);
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background-color 0.2s;
+  }
+
+  /* コピーボタンのスタイル */
+  .code-copy-button {
+    right: 0rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='rgba(255, 255, 255, 0.75)' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill-rule='evenodd' d='M2 11 V3.5 A1.5 1.5 0 0 1 3.5 2 H10' /%3E%3Crect fill-rule='evenodd' x='5' y='5' width='9' height='9' rx='1.5' /%3E%3C/svg%3E");
+  }
+
+  /* 折り返し切り替えボタンのスタイル */
+  .code-wrap-toggle {
+    right: 2.5rem;
+    /* コピーボタンの左に配置 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.75)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='7 8 3 12 7 16'/%3E%3Cpolyline points='17 8 21 12 17 16'/%3E%3Cline x1='3' y1='12' x2='21' y2='12'/%3E%3C/svg%3E");
+  }
+
+  @media (max-width: 768px) {
+
+    .code-copy-button,
+    .code-wrap-toggle {
+      width: 24px;
+      height: 24px;
+      background-size: 16px 16px;
+    }
+  }
+
+  /* ホバー時のスタイル */
+  .code-copy-button:hover,
+  .code-wrap-toggle:hover {
+    opacity: 1 !important;
+    background-color: var(--bg-code-light, #1a2737);
+  }
+
+  /* フォーカス時のスタイル */
+  .code-copy-button:focus,
+  .code-wrap-toggle:focus {
+    outline: none;
+  }
+
+  /* コードブロックラッパーホバー時にボタンを表示 */
+  .code-block-wrapper:hover .code-copy-button,
+  .code-block-wrapper:hover .code-wrap-toggle {
+    opacity: 0.75;
+  }
+
+  /* ツールチップのスタイル */
+  .code-copy-button[title]:hover::after,
+  .code-wrap-toggle[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    top: -40px;
+    right: 0;
+    padding: 4px 8px;
+    background-color: var(--bg-code-light, #1a2737);
+    color: var(--text-code-tooltip, #c9d1d9);
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+</style>
+
+<!-- ダークモード機能のJavaScriptコード -->
+<script>
+  // このスクリプトはダークモードボタンを実装します
+  (function () {
+    // 既存のdarkModeJsが存在する場合は処理をスキップ
+    if (window.darkModeJs) {
+      console.log('Dark mode JS already initialized');
+      return;
+    }
+
+    // ダークモードを有効化する属性を追加
+    document.documentElement.setAttribute('data-enable-dark-mode', 'true');
+
+    // テーマの定数
+    const THEMES = {
+      LIGHT: 'light',
+      DARK: 'dark',
+      AUTO: 'auto'
+    };
+
+    // SVGアイコンの定義
+    const ICONS = {
+      SUN: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
+      MOON: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
+      MONITOR: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
+    };
+
+    // ローカルストレージキー
+    const STORAGE_KEY = 'codefocus-theme-preference';
+
+    // 現在のテーマを取得
+    function getCurrentTheme() {
+      const savedTheme = localStorage.getItem(STORAGE_KEY);
+      if (savedTheme && [THEMES.LIGHT, THEMES.DARK, THEMES.AUTO].includes(savedTheme)) {
+        return savedTheme;
+      }
+      return THEMES.AUTO; // デフォルトはシステム設定に合わせる
+    }
+
+    // テーマを適用
+    function applyTheme(theme) {
+      if (theme === THEMES.AUTO) {
+        // システム設定に合わせる場合は、data-theme属性を削除
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        // 明示的なテーマの場合は、data-theme属性を設定
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+
+      // ローカルストレージに保存
+      localStorage.setItem(STORAGE_KEY, theme);
+    }
+
+    // 現在のテーマに対応するアイコンを取得
+    function getIconForTheme(theme) {
+      switch (theme) {
+        case THEMES.LIGHT:
+          return ICONS.SUN;
+        case THEMES.DARK:
+          return ICONS.MOON;
+        case THEMES.AUTO:
+        default:
+          return ICONS.MONITOR;
+      }
+    }
+
+    // テーマ切り替えボタンのコンテナを作成
+    function createThemeSwitcher() {
+      // コンテナ要素
+      const container = document.createElement('div');
+      container.className = 'theme-toggle-container';
+
+      // メインボタン
+      const mainButton = document.createElement('button');
+      mainButton.className = 'theme-toggle-main';
+      mainButton.setAttribute('aria-label', 'テーマ切り替え');
+      mainButton.setAttribute('aria-expanded', 'false');
+
+      // 現在のテーマに基づいたアイコンを設定
+      const currentIcon = document.createElement('span');
+      currentIcon.className = 'current-mode-icon';
+      currentIcon.innerHTML = getIconForTheme(getCurrentTheme());
+      mainButton.appendChild(currentIcon);
+
+      // ドロップダウン
+      const dropdown = document.createElement('div');
+      dropdown.className = 'theme-toggle-dropdown';
+
+      // ドロップダウンのオプション
+      const options = [
+        { theme: THEMES.LIGHT, icon: ICONS.SUN, label: 'ライトモード', tooltip: 'ライトモードに固定' },
+        { theme: THEMES.DARK, icon: ICONS.MOON, label: 'ダークモード', tooltip: 'ダークモードに固定' },
+        { theme: THEMES.AUTO, icon: ICONS.MONITOR, label: '自動切り替え', tooltip: 'システム設定に合わせる' }
+      ];
+
+      // オプションボタンを作成
+      options.forEach(option => {
+        const button = document.createElement('button');
+        button.className = 'theme-toggle-option';
+        button.setAttribute('aria-label', option.tooltip);
+        button.setAttribute('data-theme', option.theme);
+        button.title = option.tooltip;
+
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'theme-icon';
+        iconSpan.innerHTML = option.icon;
+        button.appendChild(iconSpan);
+
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'theme-label';
+        labelSpan.textContent = option.label;
+        button.appendChild(labelSpan);
+
+        // 現在のテーマと一致する場合、activeクラスを追加
+        if (getCurrentTheme() === option.theme) {
+          button.classList.add('active');
+        }
+
+        // クリックイベント
+        button.addEventListener('click', (e) => {
+          e.stopPropagation();
+
+          // テーマを適用
+          applyTheme(option.theme);
+
+          // ドロップダウンを閉じる
+          toggleDropdown(false);
+
+          // メインボタンのアイコンを更新
+          currentIcon.innerHTML = option.icon;
+
+          // アクティブ状態を更新
+          dropdown.querySelectorAll('.theme-toggle-option').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          button.classList.add('active');
+        });
+
+        dropdown.appendChild(button);
+      });
+
+      // メインボタンのクリックイベント
+      mainButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDropdown();
+      });
+
+      // ドロップダウンの表示/非表示を切り替え
+      function toggleDropdown(force) {
+        const isVisible = typeof force !== 'undefined' ? force : !dropdown.classList.contains('show');
+        dropdown.classList.toggle('show', isVisible);
+        mainButton.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
+      }
+
+      // ドキュメント内のクリックでドロップダウンを閉じる
+      document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) {
+          toggleDropdown(false);
+        }
+      });
+
+      // Escキーでドロップダウンを閉じる
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && dropdown.classList.contains('show')) {
+          toggleDropdown(false);
+        }
+      });
+
+      // コンポーネントを組み立て
+      container.appendChild(mainButton);
+      container.appendChild(dropdown);
+
+      return container;
+    }
+
+    // 初期化処理
+    function initialize() {
+      // 現在のテーマを適用
+      applyTheme(getCurrentTheme());
+
+      // テーマ切り替えUIを追加
+      const switcher = createThemeSwitcher();
+      document.body.appendChild(switcher);
+
+      // システムの色設定変更を監視（自動モードの場合に反応するため）
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (getCurrentTheme() === THEMES.AUTO) {
+          applyTheme(THEMES.AUTO); // 再適用して変更を反映
+        }
+      });
+    }
+
+    // DOMContentLoaded後に初期化
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+      initialize();
+    }
+
+    // グローバルオブジェクトに登録
+    window.darkModeJs = {
+      applyTheme,
+      getCurrentTheme,
+    };
+  })();
+</script>
+
+<!-- タグクラウド機能のJavaScriptコード -->
+<script>
+  // タグクラウドの実装 - カテゴリー要素のフォントサイズを記事数に基づいて調整
+  (function () {
+    // 定数
+    const RANGE = 13; // フォントサイズの変化範囲
+
+    // 初期化関数
+    function initCategoryCloud() {
+      // カテゴリーリストを取得
+      const categoryLinks = document.querySelectorAll('.hatena-module-category ul li a');
+      if (!categoryLinks.length) return;
+
+      // 記事数データを抽出
+      const counts = [];
+      categoryLinks.forEach(link => {
+        const match = link.textContent.match(/\((\d+)\)/);
+        if (match && match[1]) {
+          counts.push(parseInt(match[1], 10));
+        } else {
+          counts.push(0);
+        }
+      });
+
+      // 最小値と最大値を計算
+      const min = Math.min(...counts);
+      const max = Math.max(...counts);
+
+      // 平方根の範囲に基づくスケーリング係数を計算
+      const sqrtMin = Math.sqrt(min);
+      const sqrtMax = Math.sqrt(max);
+      const factor = RANGE / (sqrtMax - sqrtMin || 1); // ゼロ除算防止      // 各カテゴリーリンクにスタイルとクラスを適用
+      categoryLinks.forEach((link, i) => {
+        const count = counts[i];
+
+        // フォントサイズレベルを計算（サイズクラス用）
+        const levelRaw = (Math.sqrt(count) - sqrtMin) * factor;
+        // 1-10のスケールに変換 (より細かい粒度のサイズ変化を可能に)
+        const sizeClass = Math.max(1, Math.min(10, Math.ceil(levelRaw * 10 / RANGE)));
+
+        // テキストから括弧付きの記事数を削除
+        const text = link.textContent.trim();
+        const cleanText = text.replace(/\s*\(\d+\)\s*$/, '');
+
+        // クラスを適用
+        link.setAttribute('title', text); // 元のテキストをツールチップに
+        link.textContent = cleanText;
+
+        // カテゴリサイズのクラスを追加（CSS スタイリング用）
+        link.classList.add(`category-size-${sizeClass}`);
+        link.parentElement.classList.add('category-cloud-item');
+      });
+
+      // 親要素にタグクラウド用クラスを追加
+      const categoryContainer = document.querySelector('.hatena-module-category ul');
+      if (categoryContainer) {
+        categoryContainer.classList.add('category-cloud');
+      }
+    }
+
+    // ページロード完了時に実行
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCategoryCloud);
+    } else {
+      initCategoryCloud();
+    }
+  })();
+</script>
+
+<!-- 目次ボタン用のJavaScriptコード -->
+<script>
+  // このスクリプトは目次ボタンと目次表示を実装します
+  (function () {
+    'use strict';
+
+    // Constants
+    const CONSTANTS = {
+      WIDE_SCREEN_WIDTH: 1540,      // Minimum width for auto-expand mode
+      SCROLL_THRESHOLD: 200,         // Scroll distance before showing TOC button
+      HEADING_ACTIVE_OFFSET: 100,    // Offset for determining active heading
+      RESIZE_DEBOUNCE: 250,          // Debounce time for resize events (ms)
+      SCROLL_THROTTLE: 100           // Throttle time for scroll events (ms)
+    };
+
+    // Execute after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function () {
+      // Get all articles with table of contents
+      const allEntriesWithToc = Array.from(document.querySelectorAll('.entry-content')).filter(entry =>
+        entry.querySelector('.table-of-contents')
+      );
+
+      if (allEntriesWithToc.length === 0) return; // Do nothing if no table of contents
+
+      // Create TOC button
+      const tocButton = document.createElement('button');
+      tocButton.className = 'toc-button';
+
+      // Create element containing TOC text and icon
+      const buttonText = document.createElement('span');
+      buttonText.className = 'toc-button-text';
+      buttonText.textContent = '目次';
+
+      // Create icon element
+      const buttonIcon = document.createElement('span');
+      buttonIcon.className = 'toc-button-icon';
+
+      // Add elements to button
+      tocButton.appendChild(buttonText);
+      tocButton.appendChild(buttonIcon);
+
+      // Create floating TOC container
+      const floatingToc = document.createElement('div');
+      floatingToc.className = 'floating-toc';
+
+      // Create button to scroll to page top
+      const topButton = document.createElement('button');
+      topButton.className = 'page-top-button';
+      topButton.textContent = 'ページトップへ';
+      topButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Close TOC
+        floatingToc.classList.remove('show');
+        tocButton.classList.remove('active');
+      });
+
+      // Container for page top button
+      const topButtonContainer = document.createElement('div');
+      topButtonContainer.className = 'page-top-button-container';
+      topButtonContainer.appendChild(topButton);
+
+      // Container for TOC list (will be updated dynamically)
+      const tocListContainer = document.createElement('div');
+      tocListContainer.className = 'toc-list-container';
+
+      // Add elements to floating TOC
+      floatingToc.appendChild(topButtonContainer);
+      floatingToc.appendChild(tocListContainer);
+
+      // Add elements to body
+      document.body.appendChild(tocButton);
+      document.body.appendChild(floatingToc);
+
+      // Set up event delegation for TOC links to prevent memory leaks
+      // This handles clicks on all current and future TOC links
+      tocListContainer.addEventListener('click', function (e) {
+        const link = e.target.closest('a');
+        if (link && !isWideScreen()) {
+          floatingToc.classList.remove('show');
+          tocButton.classList.remove('active');
+        }
+      });
+
+      // Track current active entry
+      let currentActiveEntry = null;
+      let currentTocLinks = [];
+      let currentHeadingMap = new Map();
+
+      // Function to get the currently visible entry
+      function getCurrentVisibleEntry() {
+        const viewportCenter = window.innerHeight / 2;
+
+        for (const entry of allEntriesWithToc) {
+          const rect = entry.getBoundingClientRect();
+          // Check if entry is visible in viewport
+          if (rect.top < viewportCenter && rect.bottom > 0) {
+            return entry;
+          }
+        }
+
+        // If no entry is in center, return the first visible one
+        for (const entry of allEntriesWithToc) {
+          const rect = entry.getBoundingClientRect();
+          if (rect.bottom > 0) {
+            return entry;
+          }
+        }
+
+        return allEntriesWithToc[0];
+      }
+
+      // Function to update TOC content based on current entry
+      function updateTocContent(entry) {
+        if (!entry || entry === currentActiveEntry) return;
+
+        currentActiveEntry = entry;
+
+        // Get table of contents for this entry
+        const tableOfContents = entry.querySelector('.table-of-contents');
+        if (!tableOfContents) return;
+
+        // Clear and update TOC list
+        tocListContainer.innerHTML = '';
+        const tocClone = tableOfContents.cloneNode(true);
+        tocClone.classList = 'floating-toc-list';
+        tocListContainer.appendChild(tocClone);
+
+        // Update TOC links
+        currentTocLinks = Array.from(floatingToc.querySelectorAll('a'));
+
+        // Update heading map
+        currentHeadingMap.clear();
+        currentTocLinks.forEach(link => {
+          const href = link.getAttribute('href');
+          if (href && href.startsWith('#')) {
+            const targetId = href.substring(1);
+            const targetHeading = document.getElementById(targetId);
+            if (targetHeading) {
+              currentHeadingMap.set(targetHeading, link);
+            }
+          }
+        });
+      }
+
+      // Function to check if screen width is wide enough for auto-expand
+      function isWideScreen() {
+        return window.innerWidth >= CONSTANTS.WIDE_SCREEN_WIDTH;
+      }
+
+      // Function to update TOC display based on screen width
+      function updateTocDisplay() {
+        if (isWideScreen()) {
+          // Auto-expand on wide screens
+          floatingToc.classList.add('show', 'auto-expanded');
+          tocButton.classList.add('active');
+          // Hide button on wide screens as TOC is always visible
+          tocButton.style.display = 'none';
+        } else {
+          // Close TOC and remove auto-expand class on smaller screens
+          floatingToc.classList.remove('auto-expanded', 'show');
+          tocButton.classList.remove('active');
+          // Show button on smaller screens
+          tocButton.style.display = '';
+        }
+      }
+
+      // Set click event
+      tocButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Don't allow toggle on wide screens (always show)
+        if (!isWideScreen()) {
+          floatingToc.classList.toggle('show');
+          tocButton.classList.toggle('active');
+        }
+      });
+
+      // Handle window resize
+      let resizeTimer;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+          updateTocDisplay();
+        }, CONSTANTS.RESIZE_DEBOUNCE);
+      });
+
+      // Initial check on page load
+      updateTocDisplay();
+
+      // Initialize TOC content with first visible entry
+      updateTocContent(getCurrentVisibleEntry());
+
+      // Close TOC when clicking outside (except on wide screens)
+      document.addEventListener('click', function (event) {
+        if (!isWideScreen() && !floatingToc.contains(event.target) && event.target !== tocButton && !tocButton.contains(event.target)) {
+          floatingToc.classList.remove('show');
+          tocButton.classList.remove('active');
+        }
+      });
+
+      // Set scroll event with throttling for performance
+      let scrollTimer = null;
+      let lastScrollTop = 0;
+
+      window.addEventListener('scroll', function () {
+        // Throttle scroll events for performance
+        if (scrollTimer !== null) return;
+
+        scrollTimer = setTimeout(function () {
+          scrollTimer = null;
+
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+          // Get currently visible entry
+          const visibleEntry = getCurrentVisibleEntry();
+
+          // Update TOC content if entry changed
+          updateTocContent(visibleEntry);
+
+          // Check if any entry with TOC is visible
+          const anyEntryVisible = allEntriesWithToc.some(entry => {
+            const rect = entry.getBoundingClientRect();
+            return rect.top < window.innerHeight && rect.bottom > 0;
+          });
+
+          // Control TOC button visibility based on scroll position (non-wide screens only)
+          // Wide screens: Always visible (controlled by updateTocDisplay())
+          if (!isWideScreen()) {
+            if (anyEntryVisible && scrollTop > CONSTANTS.SCROLL_THRESHOLD) {
+              tocButton.style.display = 'block';
+            } else {
+              tocButton.style.display = 'none';
+              floatingToc.classList.remove('show'); // Close TOC in non-visible area
+              tocButton.classList.remove('active'); // Reset button state
+            }
+          }
+
+          // Detect and highlight currently visible heading in current entry
+          if (currentActiveEntry && anyEntryVisible) {
+            // Clear all active classes
+            currentTocLinks.forEach(link => {
+              link.classList.remove('active');
+              // Remove active class from parent li element
+              if (link.parentElement) {
+                link.parentElement.classList.remove('active');
+              }
+            });
+
+            // Get headings from current entry only
+            const headings = Array.from(currentActiveEntry.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+
+            // Detect currently visible heading
+            // Get the heading closest to the top of the screen among visible headings
+            let activeHeading = null;
+            let minDistance = Infinity;
+
+            headings.forEach(heading => {
+              const rect = heading.getBoundingClientRect();
+              // Check if element is visible on screen or just above
+              if (rect.top <= CONSTANTS.HEADING_ACTIVE_OFFSET) {
+                const distance = Math.abs(rect.top);
+                if (distance < minDistance) {
+                  minDistance = distance;
+                  activeHeading = heading;
+                }
+              }
+            });
+
+            // Activate corresponding TOC link
+            if (activeHeading && currentHeadingMap.has(activeHeading)) {
+              const activeLink = currentHeadingMap.get(activeHeading);
+              activeLink.classList.add('active');
+              // Add active class to parent li element
+              if (activeLink.parentElement) {
+                activeLink.parentElement.classList.add('active');
+              }
+
+              // Auto-scroll TOC to show active item if it's outside viewport
+              // Use 'nearest' to only scroll when necessary
+              activeLink.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'nearest'
+              });
+            }
+          }
+
+          lastScrollTop = scrollTop;
+        }, CONSTANTS.SCROLL_THROTTLE);
+      });
+    });
+  })();
+
+</script>
+<!-- 目次ボタン用のスタイルを適用するためのダミー要素 -->
+<div class="js-table-of-contents-script"></div>
+
+<!-- 記事中の目次開閉のJavaScriptコード -->
+<script>
+  // このスクリプトははてなブログ記事内の目次（table-of-contents）の開閉表示を実装します
+  (function () {
+    'use strict';
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // 記事内の目次を検索
+      const tocElements = document.querySelectorAll('.table-of-contents');
+
+      tocElements.forEach(function (toc) {
+        // すでに処理済みの目次はスキップ
+        if (toc.classList.contains('toc-processed')) {
+          return;
+        }
+
+        // 目次をコンテナで囲む
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+
+        // 目次のタイトルを作成
+        const tocTitle = document.createElement('div');
+        tocTitle.className = 'toc-title';
+        tocTitle.innerHTML = '目次 <span class="toc-toggle-icon"></span>';
+        tocContainer.insertBefore(tocTitle, toc);
+
+        // 目次のコンテンツ部分をdivで囲む
+        const tocContent = document.createElement('div');
+        tocContent.className = 'toc-content';
+        tocContent.appendChild(toc.cloneNode(true));
+        tocContainer.replaceChild(tocContent, toc);
+
+        // 目次を開閉するための状態を設定（デフォルトは閉じた状態）
+        tocContainer.classList.add('toc-closed');
+
+        // クリックイベントの設定
+        tocTitle.addEventListener('click', function () {
+          if (tocContainer.classList.contains('toc-open')) {
+            // 現在開いている場合は閉じる
+            tocContainer.classList.remove('toc-open');
+            tocContainer.classList.add('toc-closed');
+          } else {
+            // 現在閉じている場合は開く
+            tocContainer.classList.remove('toc-closed');
+            tocContainer.classList.add('toc-open');
+          }
+        });
+
+        // 処理済みとしてマーク
+        tocContent.querySelector('.table-of-contents').classList.add('toc-processed');
+      });
+    });
+  })();
+</script>
