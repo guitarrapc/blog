@@ -1,6 +1,5 @@
 name: 記事の校正
 on:
-  workflow_call:
   pull_request:
     branches: [main]
     paths:
@@ -9,6 +8,8 @@ on:
       - .github/workflows/textlint.yaml
       - .textlintrc.json
       - package*.json
+  workflow_call:
+  workflow_dispatch:
 
 # run `npx textlint --fix ./guitarrapc-tech.hatenablog.com/entry/**/*.md` to fix lint errors.
 
