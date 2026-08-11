@@ -9,7 +9,7 @@ on:
 
 jobs:
   pull-draft:
-    uses: hatena/hatenablog-workflows/.github/workflows/pull-draft.yaml@fa544a63e845030ff65e35d78847e2bc2cab981e # v2.0.2
+    uses: hatena/hatenablog-workflows/.github/workflows/pull-draft.yaml@b18a558b9ea673d8957fba299824d182d1b63513 # v2.1.0
     with:
       title: ${{ github.event.inputs.title }}
       draft: true
