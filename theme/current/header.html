@@ -2,89 +2,271 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
 
+<!-- アラート記法のJavaScriptコード -->
+<script>
+  // このスクリプトは記事内の引用に書いたGitHubのアラート記法(> [!NOTE] など)をアラート表示に変換します
+  (function () {
+    'use strict';
+
+    // Alert types and their titles
+    const ALERT_TITLES = {
+      note: 'Note',
+      tip: 'Tip',
+      important: 'Important',
+      warning: 'Warning',
+      caution: 'Caution',
+    };
+
+    // Marker must be alone on its line: "[!NOTE]" followed by newline, <br> or end of paragraph.
+    // Only spaces and tabs are allowed around it, same as GitHub (not full-width space or &nbsp;),
+    // and it must be on the first line of the paragraph (no newline before it)
+    const MARKER_PATTERN = /^[ \t]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(\r?\n|$)/i;
+
+    // Blockquotes already handled while the page was loading
+    const processed = new WeakSet();
+
+    // Returns marker info if the element is a paragraph starting with an alert marker
+    function findMarker(element) {
+      if (element.tagName !== 'P') {
+        return null;
+      }
+
+      const markerNode = element.firstChild;
+      if (!markerNode || markerNode.nodeType !== Node.TEXT_NODE) {
+        return null;
+      }
+
+      const match = markerNode.nodeValue.match(MARKER_PATTERN);
+      if (!match) {
+        return null;
+      }
+
+      // "[!NOTE]" ends at the text node boundary: next must be <br> or nothing (e.g. not "[!NOTE]<strong>")
+      const lineBreak = match[2] ? null : markerNode.nextSibling;
+      if (lineBreak && lineBreak.nodeName !== 'BR') {
+        return null;
+      }
+
+      return { paragraph: element, markerNode: markerNode, lineBreak: lineBreak, match: match };
+    }
+
+    // Only ASCII whitespace counts as blank, same as GitHub (&nbsp; or full-width space is content)
+    function isBlank(text) {
+      return !/[^ \t\r\n\f]/.test(text);
+    }
+
+    // Any element counts as content, including <br> (the <br> ending the marker line is skipped by the caller)
+    function hasContent(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return !isBlank(node.nodeValue);
+      }
+      return node.nodeType === Node.ELEMENT_NODE;
+    }
+
+    // Move a node keeping its state where moveBefore is supported (e.g. iframes are not reloaded)
+    function moveNode(parent, node) {
+      if (typeof parent.moveBefore === 'function') {
+        parent.moveBefore(node, null);
+      } else {
+        parent.appendChild(node);
+      }
+    }
+
+    // Whether the marker is followed by any content before `end` (the next marker paragraph)
+    function hasBody(marker, end) {
+      const { paragraph, markerNode, lineBreak, match } = marker;
+      if (!isBlank(markerNode.nodeValue.slice(match[0].length))) {
+        return true;
+      }
+      for (let node = (lineBreak || markerNode).nextSibling; node; node = node.nextSibling) {
+        if (hasContent(node)) {
+          return true;
+        }
+      }
+      for (let node = paragraph.nextSibling; node && node !== end; node = node.nextSibling) {
+        if (hasContent(node)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function renderAlert(blockquote, marker) {
+      const { paragraph, markerNode, lineBreak, match } = marker;
+
+      // Remove marker and the <br> after it. A newline after the marker is kept (not rendered), so that
+      // text extraction such as Hatena's requote gives "Note\nbody" instead of gluing the title to the body
+      const rest = markerNode.nodeValue.slice(match[0].length - match[2].length);
+      if (rest) {
+        markerNode.nodeValue = rest;
+      } else {
+        markerNode.remove();
+      }
+      if (lineBreak) {
+        lineBreak.remove();
+      }
+
+      // Marker-only paragraph ("> [!NOTE]\n>\n> text") leaves an empty paragraph
+      if (paragraph.children.length === 0 && isBlank(paragraph.textContent)) {
+        paragraph.remove();
+      }
+
+      const type = match[1].toLowerCase();
+      blockquote.classList.add('markdown-alert', 'markdown-alert-' + type);
+
+      const title = document.createElement('p');
+      title.className = 'markdown-alert-title';
+      title.textContent = ALERT_TITLES[type];
+      blockquote.insertBefore(title, blockquote.firstChild);
+    }
+
+    function convertBlockquote(blockquote) {
+      const markers = Array.from(blockquote.children).map(findMarker).filter(Boolean);
+
+      // A marker without body stays as plain text (same as GitHub)
+      const alerts = markers.filter(function (marker, i) {
+        return hasBody(marker, markers[i + 1] ? markers[i + 1].paragraph : null);
+      });
+
+      // Hatena Blog merges blockquotes separated by blank lines into one,
+      // so split it into one alert per marker paragraph. Walk backwards so each
+      // segment only holds the nodes up to the next marker.
+      for (let i = alerts.length - 1; i >= 0; i--) {
+        const paragraph = alerts[i].paragraph;
+        let target = blockquote;
+
+        if (paragraph !== blockquote.firstElementChild) {
+          target = blockquote.cloneNode(false);
+          target.removeAttribute('id');
+          // Insert first: moveBefore keeps node state only when moving within the document
+          blockquote.after(target);
+          let node = paragraph;
+          while (node) {
+            const next = node.nextSibling;
+            moveNode(target, node);
+            node = next;
+          }
+        }
+
+        renderAlert(target, alerts[i]);
+      }
+    }
+
+    function convertAlerts(isParsed) {
+      // Only top-level blockquotes written in Markdown (no class, unlike embeds such as twitter-tweet) are alerts
+      const blockquotes = document.querySelectorAll('.entry-content > blockquote:not([class])');
+
+      blockquotes.forEach(function (blockquote) {
+        if (processed.has(blockquote)) {
+          return;
+        }
+        // While loading, skip blockquotes the parser may still be filling (nothing follows them yet)
+        if (!isParsed && !blockquote.nextSibling && !blockquote.parentNode.nextSibling) {
+          return;
+        }
+        processed.add(blockquote);
+        convertBlockquote(blockquote);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      // Convert blockquotes as soon as they are parsed, so raw "[!NOTE]" quotes are not painted before DOMContentLoaded
+      const observer = new MutationObserver(function () {
+        convertAlerts(false);
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+      document.addEventListener('DOMContentLoaded', function () {
+        observer.disconnect();
+        convertAlerts(true);
+      });
+    } else {
+      convertAlerts(true);
+    }
+  })();
+</script>
+
+<!-- コードブロック機能のJavaScriptコード -->
 <script type="text/javascript">
-  /**
-   * コードブロック機能（コピー & 折り返し切り替え）を提供するスクリプト
-   */
+  // このスクリプトはコードブロックのコピー & 折り返し切り替えを実装します
   (function () {
     'use strict';
     document.addEventListener('DOMContentLoaded', function () {
-      // コードブロックを全て取得
+      // Get all code blocks
       const codeBlocks = document.querySelectorAll('pre.code');
 
-      // 各コードブロックにボタンを追加
+      // Add buttons to each code block
       codeBlocks.forEach(function (codeBlock) {
-        // コードブロック用のラッパーを作成
+        // Create wrapper for code block
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
 
-        // コピーボタンを作成
+        // Create copy button
         const copyButton = document.createElement('button');
         copyButton.className = 'code-copy-button';
-        copyButton.removeAttribute('title'); // 初期状態ではタイトル属性を削除
+        copyButton.removeAttribute('title'); // Remove title attribute in initial state
         copyButton.setAttribute('aria-label', 'Copy code');
 
-        // 折り返し切り替えボタンを作成
+        // Create wrap toggle button
         const wrapToggleButton = document.createElement('button');
         wrapToggleButton.className = 'code-wrap-toggle';
         wrapToggleButton.title = 'Toggle Wrap';
         wrapToggleButton.setAttribute('aria-label', 'Toggle code wrapping');
 
-        // コードブロックを親要素から取り出して、ラッパーに移動
+        // Move code block from parent to wrapper
         const parent = codeBlock.parentNode;
         parent.insertBefore(wrapper, codeBlock);
         wrapper.appendChild(codeBlock);
 
-        // 初期状態は折り返しなし (デフォルト)
+        // Initial state is no wrap (default)
         codeBlock.classList.add('nowrap');
 
-        // ラッパーにボタンを追加（順番重要: 右からコピー、折り返し）
+        // Add buttons to wrapper (order matters: copy, wrap from right)
         wrapper.appendChild(copyButton);
         wrapper.appendChild(wrapToggleButton);
 
-        // コピーボタンのクリックイベントを設定
+        // Set click event for copy button
         copyButton.addEventListener('click', function () {
-          // コピーする前にボタンテキストを一時的に隠す
+          // Temporarily hide button text before copying
           const originalDisplay = copyButton.style.display;
           copyButton.style.display = 'none';
 
-          // コードブロックのテキストを取得
+          // Get text from code block
           const code = codeBlock.textContent;
 
-          // ボタンの表示を元に戻す
+          // Restore button display
           copyButton.style.display = originalDisplay;
 
-          // クリップボードにコピー
+          // Copy to clipboard
           navigator.clipboard.writeText(code).then(function () {
-            // コピー成功
+            // Copy succeeded
             copyButton.title = 'Copied';
             copyButton.classList.add('copied');
 
-            // 一定時間後に元に戻す
+            // Reset after a certain time
             setTimeout(function () {
-              copyButton.removeAttribute('title'); // タイトル属性を削除
+              copyButton.removeAttribute('title'); // Remove title attribute
               copyButton.classList.remove('copied');
             }, 2000);
           }).catch(function (err) {
-            // コピー失敗
+            // Copy failed
             console.error('Copy failed:', err);
             copyButton.title = 'Copy failed';
             copyButton.classList.add('copy-error');
 
-            // 一定時間後に元に戻す
+            // Reset after a certain time
             setTimeout(function () {
-              copyButton.removeAttribute('title'); // タイトル属性を削除
+              copyButton.removeAttribute('title'); // Remove title attribute
               copyButton.classList.remove('copy-error');
             }, 2000);
           });
         });
 
-        // 折り返し切り替えボタンのクリックイベントを設定
+        // Set click event for wrap toggle button
         wrapToggleButton.addEventListener('click', function () {
           codeBlock.classList.toggle('nowrap');
           codeBlock.classList.toggle('wrap');
 
-          // ボタンのツールチップを更新
+          // Update button tooltip
           if (codeBlock.classList.contains('nowrap')) {
             wrapToggleButton.title = 'Enable Wrap';
           } else {
@@ -204,56 +386,56 @@
 <script>
   // このスクリプトはダークモードボタンを実装します
   (function () {
-    // 既存のdarkModeJsが存在する場合は処理をスキップ
+    // Skip processing if darkModeJs already exists
     if (window.darkModeJs) {
       console.log('Dark mode JS already initialized');
       return;
     }
 
-    // ダークモードを有効化する属性を追加
+    // Add attribute to enable dark mode
     document.documentElement.setAttribute('data-enable-dark-mode', 'true');
 
-    // テーマの定数
+    // Theme constants
     const THEMES = {
       LIGHT: 'light',
       DARK: 'dark',
       AUTO: 'auto'
     };
 
-    // SVGアイコンの定義
+    // SVG icon definitions
     const ICONS = {
       SUN: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
       MOON: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
       MONITOR: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
     };
 
-    // ローカルストレージキー
+    // Local storage key
     const STORAGE_KEY = 'codefocus-theme-preference';
 
-    // 現在のテーマを取得
+    // Get current theme
     function getCurrentTheme() {
       const savedTheme = localStorage.getItem(STORAGE_KEY);
       if (savedTheme && [THEMES.LIGHT, THEMES.DARK, THEMES.AUTO].includes(savedTheme)) {
         return savedTheme;
       }
-      return THEMES.AUTO; // デフォルトはシステム設定に合わせる
+      return THEMES.AUTO; // Default: match system settings
     }
 
-    // テーマを適用
+    // Apply theme
     function applyTheme(theme) {
       if (theme === THEMES.AUTO) {
-        // システム設定に合わせる場合は、data-theme属性を削除
+        // Remove data-theme attribute to match system settings
         document.documentElement.removeAttribute('data-theme');
       } else {
-        // 明示的なテーマの場合は、data-theme属性を設定
+        // Set data-theme attribute for explicit theme
         document.documentElement.setAttribute('data-theme', theme);
       }
 
-      // ローカルストレージに保存
+      // Save to local storage
       localStorage.setItem(STORAGE_KEY, theme);
     }
 
-    // 現在のテーマに対応するアイコンを取得
+    // Get icon corresponding to current theme
     function getIconForTheme(theme) {
       switch (theme) {
         case THEMES.LIGHT:
@@ -266,36 +448,36 @@
       }
     }
 
-    // テーマ切り替えボタンのコンテナを作成
+    // Create theme switcher button container
     function createThemeSwitcher() {
-      // コンテナ要素
+      // Container element
       const container = document.createElement('div');
       container.className = 'theme-toggle-container';
 
-      // メインボタン
+      // Main button
       const mainButton = document.createElement('button');
       mainButton.className = 'theme-toggle-main';
-      mainButton.setAttribute('aria-label', 'テーマ切り替え');
+      mainButton.setAttribute('aria-label', 'Toggle theme');
       mainButton.setAttribute('aria-expanded', 'false');
 
-      // 現在のテーマに基づいたアイコンを設定
+      // Set icon based on current theme
       const currentIcon = document.createElement('span');
       currentIcon.className = 'current-mode-icon';
       currentIcon.innerHTML = getIconForTheme(getCurrentTheme());
       mainButton.appendChild(currentIcon);
 
-      // ドロップダウン
+      // Dropdown
       const dropdown = document.createElement('div');
       dropdown.className = 'theme-toggle-dropdown';
 
-      // ドロップダウンのオプション
+      // Dropdown options
       const options = [
         { theme: THEMES.LIGHT, icon: ICONS.SUN, label: 'ライトモード', tooltip: 'ライトモードに固定' },
         { theme: THEMES.DARK, icon: ICONS.MOON, label: 'ダークモード', tooltip: 'ダークモードに固定' },
         { theme: THEMES.AUTO, icon: ICONS.MONITOR, label: '自動切り替え', tooltip: 'システム設定に合わせる' }
       ];
 
-      // オプションボタンを作成
+      // Create option buttons
       options.forEach(option => {
         const button = document.createElement('button');
         button.className = 'theme-toggle-option';
@@ -313,25 +495,25 @@
         labelSpan.textContent = option.label;
         button.appendChild(labelSpan);
 
-        // 現在のテーマと一致する場合、activeクラスを追加
+        // Add active class if matches current theme
         if (getCurrentTheme() === option.theme) {
           button.classList.add('active');
         }
 
-        // クリックイベント
+        // Click event
         button.addEventListener('click', (e) => {
           e.stopPropagation();
 
-          // テーマを適用
+          // Apply theme
           applyTheme(option.theme);
 
-          // ドロップダウンを閉じる
+          // Close dropdown
           toggleDropdown(false);
 
-          // メインボタンのアイコンを更新
+          // Update main button icon
           currentIcon.innerHTML = option.icon;
 
-          // アクティブ状態を更新
+          // Update active state
           dropdown.querySelectorAll('.theme-toggle-option').forEach(btn => {
             btn.classList.remove('active');
           });
@@ -341,65 +523,68 @@
         dropdown.appendChild(button);
       });
 
-      // メインボタンのクリックイベント
-      mainButton.addEventListener('click', (e) => {
-        e.stopPropagation();
+      // Main button click event.
+      // Deliberately let the event bubble to document. The outside-click handler below already
+      // excludes the container via contains(), so stopping propagation buys nothing here - it
+      // only prevents the TOC button script's outside-click handler from closing the floating
+      // TOC, leaving both floating panels open on top of each other.
+      mainButton.addEventListener('click', () => {
         toggleDropdown();
       });
 
-      // ドロップダウンの表示/非表示を切り替え
+      // Toggle dropdown visibility
       function toggleDropdown(force) {
         const isVisible = typeof force !== 'undefined' ? force : !dropdown.classList.contains('show');
         dropdown.classList.toggle('show', isVisible);
         mainButton.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
       }
 
-      // ドキュメント内のクリックでドロップダウンを閉じる
+      // Close dropdown on document click
       document.addEventListener('click', (e) => {
         if (!container.contains(e.target)) {
           toggleDropdown(false);
         }
       });
 
-      // Escキーでドロップダウンを閉じる
+      // Close dropdown on Escape key
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && dropdown.classList.contains('show')) {
           toggleDropdown(false);
         }
       });
 
-      // コンポーネントを組み立て
+      // Assemble components
       container.appendChild(mainButton);
       container.appendChild(dropdown);
 
       return container;
     }
 
-    // 初期化処理
+    // Initialization
     function initialize() {
-      // 現在のテーマを適用
+      // Apply current theme
       applyTheme(getCurrentTheme());
 
-      // テーマ切り替えUIを追加
+      // Add theme switcher UI
       const switcher = createThemeSwitcher();
       document.body.appendChild(switcher);
 
-      // システムの色設定変更を監視（自動モードの場合に反応するため）
+      // Monitor system color setting changes (to react in auto mode)
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
         if (getCurrentTheme() === THEMES.AUTO) {
-          applyTheme(THEMES.AUTO); // 再適用して変更を反映
+          applyTheme(THEMES.AUTO); // Reapply to reflect changes
         }
       });
     }
 
-    // DOMContentLoaded後に初期化
+    // Initialize after DOMContentLoaded
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initialize);
     } else {
       initialize();
     }
 
-    // グローバルオブジェクトに登録
+    // Register to global object
     window.darkModeJs = {
       applyTheme,
       getCurrentTheme,
@@ -411,16 +596,16 @@
 <script>
   // タグクラウドの実装 - カテゴリー要素のフォントサイズを記事数に基づいて調整
   (function () {
-    // 定数
-    const RANGE = 13; // フォントサイズの変化範囲
+    // Font size variation range
+    const RANGE = 13;
 
-    // 初期化関数
+    // Initialization function
     function initCategoryCloud() {
-      // カテゴリーリストを取得
+      // Get category list
       const categoryLinks = document.querySelectorAll('.hatena-module-category ul li a');
       if (!categoryLinks.length) return;
 
-      // 記事数データを抽出
+      // Extract article count data
       const counts = [];
       categoryLinks.forEach(link => {
         const match = link.textContent.match(/\((\d+)\)/);
@@ -431,43 +616,45 @@
         }
       });
 
-      // 最小値と最大値を計算
+      // Calculate minimum and maximum values
       const min = Math.min(...counts);
       const max = Math.max(...counts);
 
-      // 平方根の範囲に基づくスケーリング係数を計算
+      // Calculate scaling factor based on square root range
       const sqrtMin = Math.sqrt(min);
       const sqrtMax = Math.sqrt(max);
-      const factor = RANGE / (sqrtMax - sqrtMin || 1); // ゼロ除算防止      // 各カテゴリーリンクにスタイルとクラスを適用
+      const factor = RANGE / (sqrtMax - sqrtMin || 1); // Prevent division by zero
+
+      // Apply styles and classes to each category link
       categoryLinks.forEach((link, i) => {
         const count = counts[i];
 
-        // フォントサイズレベルを計算（サイズクラス用）
+        // Calculate font size level (for size class)
         const levelRaw = (Math.sqrt(count) - sqrtMin) * factor;
-        // 1-10のスケールに変換 (より細かい粒度のサイズ変化を可能に)
+        // Convert to 1-10 scale (enables finer granularity of size changes)
         const sizeClass = Math.max(1, Math.min(10, Math.ceil(levelRaw * 10 / RANGE)));
 
-        // テキストから括弧付きの記事数を削除
+        // Remove article count in parentheses from text
         const text = link.textContent.trim();
         const cleanText = text.replace(/\s*\(\d+\)\s*$/, '');
 
-        // クラスを適用
-        link.setAttribute('title', text); // 元のテキストをツールチップに
+        // Apply classes
+        link.setAttribute('title', text); // Set original text as tooltip
         link.textContent = cleanText;
 
-        // カテゴリサイズのクラスを追加（CSS スタイリング用）
+        // Add category size class (for CSS styling)
         link.classList.add(`category-size-${sizeClass}`);
         link.parentElement.classList.add('category-cloud-item');
       });
 
-      // 親要素にタグクラウド用クラスを追加
+      // Add tag cloud class to parent element
       const categoryContainer = document.querySelector('.hatena-module-category ul');
       if (categoryContainer) {
         categoryContainer.classList.add('category-cloud');
       }
     }
 
-    // ページロード完了時に実行
+    // Execute after page load completes
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initCategoryCloud);
     } else {
@@ -485,7 +672,6 @@
     // Constants
     const CONSTANTS = {
       WIDE_SCREEN_WIDTH: 1540,      // Minimum width for auto-expand mode
-      SCROLL_THRESHOLD: 200,         // Scroll distance before showing TOC button
       HEADING_ACTIVE_OFFSET: 100,    // Offset for determining active heading
       RESIZE_DEBOUNCE: 250,          // Debounce time for resize events (ms)
       SCROLL_THROTTLE: 100           // Throttle time for scroll events (ms)
@@ -626,6 +812,15 @@
         return window.innerWidth >= CONSTANTS.WIDE_SCREEN_WIDTH;
       }
 
+      // Function to check if any entry with a table of contents is on screen.
+      // The button is only useful while such an entry is in view.
+      function isAnyEntryVisible() {
+        return allEntriesWithToc.some(entry => {
+          const rect = entry.getBoundingClientRect();
+          return rect.top < window.innerHeight && rect.bottom > 0;
+        });
+      }
+
       // Function to update TOC display based on screen width
       function updateTocDisplay() {
         if (isWideScreen()) {
@@ -638,15 +833,20 @@
           // Close TOC and remove auto-expand class on smaller screens
           floatingToc.classList.remove('auto-expanded', 'show');
           tocButton.classList.remove('active');
-          // Show button on smaller screens
-          tocButton.style.display = '';
+          // Show button on smaller screens.
+          // Clear the inline value instead of setting 'block' so the stylesheet keeps control
+          // of the layout (display: inline-flex with align-items: center).
+          tocButton.style.display = isAnyEntryVisible() ? '' : 'none';
         }
       }
 
-      // Set click event
+      // Set click event.
+      // Deliberately let the event bubble to document. The outside-click handler below already
+      // excludes this button and the panel via contains(), so stopping propagation buys nothing
+      // here - it only prevents the dark mode script's outside-click handler from closing its
+      // dropdown, leaving both floating panels open on top of each other.
       tocButton.addEventListener('click', function (e) {
         e.preventDefault();
-        e.stopPropagation();
 
         // Don't allow toggle on wide screens (always show)
         if (!isWideScreen()) {
@@ -680,7 +880,6 @@
 
       // Set scroll event with throttling for performance
       let scrollTimer = null;
-      let lastScrollTop = 0;
 
       window.addEventListener('scroll', function () {
         // Throttle scroll events for performance
@@ -689,8 +888,6 @@
         scrollTimer = setTimeout(function () {
           scrollTimer = null;
 
-          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
           // Get currently visible entry
           const visibleEntry = getCurrentVisibleEntry();
 
@@ -698,16 +895,14 @@
           updateTocContent(visibleEntry);
 
           // Check if any entry with TOC is visible
-          const anyEntryVisible = allEntriesWithToc.some(entry => {
-            const rect = entry.getBoundingClientRect();
-            return rect.top < window.innerHeight && rect.bottom > 0;
-          });
+          const anyEntryVisible = isAnyEntryVisible();
 
-          // Control TOC button visibility based on scroll position (non-wide screens only)
+          // Control TOC button visibility based on entry visibility (non-wide screens only)
           // Wide screens: Always visible (controlled by updateTocDisplay())
           if (!isWideScreen()) {
-            if (anyEntryVisible && scrollTop > CONSTANTS.SCROLL_THRESHOLD) {
-              tocButton.style.display = 'block';
+            if (anyEntryVisible) {
+              // Clear the inline value so the stylesheet keeps control of the layout
+              tocButton.style.display = '';
             } else {
               tocButton.style.display = 'none';
               floatingToc.classList.remove('show'); // Close TOC in non-visible area
@@ -764,13 +959,10 @@
               });
             }
           }
-
-          lastScrollTop = scrollTop;
         }, CONSTANTS.SCROLL_THROTTLE);
       });
     });
   })();
-
 </script>
 <!-- 目次ボタン用のスタイルを適用するためのダミー要素 -->
 <div class="js-table-of-contents-script"></div>
@@ -782,50 +974,50 @@
     'use strict';
 
     document.addEventListener('DOMContentLoaded', function () {
-      // 記事内の目次を検索
+      // Search for table of contents in article
       const tocElements = document.querySelectorAll('.table-of-contents');
 
       tocElements.forEach(function (toc) {
-        // すでに処理済みの目次はスキップ
+        // Skip already processed TOC
         if (toc.classList.contains('toc-processed')) {
           return;
         }
 
-        // 目次をコンテナで囲む
+        // Wrap TOC with container
         const tocContainer = document.createElement('div');
         tocContainer.className = 'toc-container';
         toc.parentNode.insertBefore(tocContainer, toc);
         tocContainer.appendChild(toc);
 
-        // 目次のタイトルを作成
+        // Create TOC title
         const tocTitle = document.createElement('div');
         tocTitle.className = 'toc-title';
         tocTitle.innerHTML = '目次 <span class="toc-toggle-icon"></span>';
         tocContainer.insertBefore(tocTitle, toc);
 
-        // 目次のコンテンツ部分をdivで囲む
+        // Wrap TOC content section with div
         const tocContent = document.createElement('div');
         tocContent.className = 'toc-content';
         tocContent.appendChild(toc.cloneNode(true));
         tocContainer.replaceChild(tocContent, toc);
 
-        // 目次を開閉するための状態を設定（デフォルトは閉じた状態）
+        // Set state for toggle (default is closed)
         tocContainer.classList.add('toc-closed');
 
-        // クリックイベントの設定
+        // Set click event
         tocTitle.addEventListener('click', function () {
           if (tocContainer.classList.contains('toc-open')) {
-            // 現在開いている場合は閉じる
+            // Close if currently open
             tocContainer.classList.remove('toc-open');
             tocContainer.classList.add('toc-closed');
           } else {
-            // 現在閉じている場合は開く
+            // Open if currently closed
             tocContainer.classList.remove('toc-closed');
             tocContainer.classList.add('toc-open');
           }
         });
 
-        // 処理済みとしてマーク
+        // Mark as processed
         tocContent.querySelector('.table-of-contents').classList.add('toc-processed');
       });
     });
