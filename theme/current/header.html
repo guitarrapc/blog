@@ -5,10 +5,12 @@
 <!-- アラート記法のJavaScriptコード -->
 <script>
   // このスクリプトは記事内の引用に書いたGitHubのアラート記法(> [!NOTE] など)をアラート表示に変換します
+  /**
+   * Script to render GitHub-style alerts (`> [!NOTE]` etc.) in Hatena Blog articles
+   */
   (function () {
     'use strict';
 
-    // Alert types and their titles
     const ALERT_TITLES = {
       note: 'Note',
       tip: 'Tip',
@@ -138,7 +140,7 @@
         if (paragraph !== blockquote.firstElementChild) {
           target = blockquote.cloneNode(false);
           target.removeAttribute('id');
-          // Insert first: moveBefore keeps node state only when moving within the document
+          // Insert first: moveBefore throws unless the new parent is in the same document
           blockquote.after(target);
           let node = paragraph;
           while (node) {
@@ -186,859 +188,445 @@
 </script>
 
 <!-- コードブロック機能のJavaScriptコード -->
-<script type="text/javascript">
-  // このスクリプトはコードブロックのコピー & 折り返し切り替えを実装します
+<script>
+  // このスクリプトは記事内のコードブロックに、折り返しの切り替えボタンとコピーボタンを追加します
+  /**
+   * Script to add tools (wrap toggle & copy) to Hatena Blog code blocks
+   */
   (function () {
     'use strict';
-    document.addEventListener('DOMContentLoaded', function () {
-      // Get all code blocks
-      const codeBlocks = document.querySelectorAll('pre.code');
 
-      // Add buttons to each code block
-      codeBlocks.forEach(function (codeBlock) {
-        // Create wrapper for code block
-        const wrapper = document.createElement('div');
-        wrapper.className = 'code-block-wrapper';
+    const LABELS = {
+      wrap: 'Wrap',
+      copy: 'Copy',
+      copied: 'Copied!',
+      copyFailed: 'Copy failed',
+    };
 
-        // Create copy button
-        const copyButton = document.createElement('button');
-        copyButton.className = 'code-copy-button';
-        copyButton.removeAttribute('title'); // Remove title attribute in initial state
-        copyButton.setAttribute('aria-label', 'Copy code');
+    // How long the copy result stays on the button
+    const RESET_DELAY = 2000;
 
-        // Create wrap toggle button
-        const wrapToggleButton = document.createElement('button');
-        wrapToggleButton.className = 'code-wrap-toggle';
-        wrapToggleButton.title = 'Toggle Wrap';
-        wrapToggleButton.setAttribute('aria-label', 'Toggle code wrapping');
+    function createButton(className, label) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'code-block-button ' + className;
+      button.textContent = label;
+      return button;
+    }
 
-        // Move code block from parent to wrapper
-        const parent = codeBlock.parentNode;
-        parent.insertBefore(wrapper, codeBlock);
-        wrapper.appendChild(codeBlock);
+    function enhance(pre) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block';
 
-        // Initial state is no wrap (default)
-        codeBlock.classList.add('nowrap');
+      // The toolbar sits in the header band the theme reserves at the top of every code block,
+      // so the buttons never cover the code and adding them does not shift the layout
+      const toolbar = document.createElement('div');
+      toolbar.className = 'code-block-toolbar';
 
-        // Add buttons to wrapper (order matters: copy, wrap from right)
-        wrapper.appendChild(copyButton);
-        wrapper.appendChild(wrapToggleButton);
+      const wrapButton = createButton('code-block-wrap', LABELS.wrap);
+      wrapButton.setAttribute('aria-pressed', 'false');
+      const copyButton = createButton('code-block-copy', LABELS.copy);
+      toolbar.append(wrapButton, copyButton);
 
-        // Set click event for copy button
-        copyButton.addEventListener('click', function () {
-          // Temporarily hide button text before copying
-          const originalDisplay = copyButton.style.display;
-          copyButton.style.display = 'none';
+      // Changing the button text is not announced by screen readers, so report the copy result here
+      const status = document.createElement('span');
+      status.className = 'code-block-status';
+      status.setAttribute('role', 'status');
 
-          // Get text from code block
-          const code = codeBlock.textContent;
+      pre.before(wrapper);
+      wrapper.append(pre, toolbar, status);
 
-          // Restore button display
-          copyButton.style.display = originalDisplay;
+      wrapButton.addEventListener('click', function () {
+        const wrapped = pre.classList.toggle('is-wrapped');
+        wrapButton.setAttribute('aria-pressed', String(wrapped));
+      });
 
-          // Copy to clipboard
-          navigator.clipboard.writeText(code).then(function () {
-            // Copy succeeded
-            copyButton.title = 'Copied';
-            copyButton.classList.add('copied');
+      let resetTimer = null;
+      function showResult(copied) {
+        const label = copied ? LABELS.copied : LABELS.copyFailed;
+        copyButton.classList.toggle('is-copied', copied);
+        copyButton.classList.toggle('is-failed', !copied);
+        copyButton.textContent = label;
+        status.textContent = label;
 
-            // Reset after a certain time
-            setTimeout(function () {
-              copyButton.removeAttribute('title'); // Remove title attribute
-              copyButton.classList.remove('copied');
-            }, 2000);
-          }).catch(function (err) {
-            // Copy failed
-            console.error('Copy failed:', err);
-            copyButton.title = 'Copy failed';
-            copyButton.classList.add('copy-error');
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(function () {
+          copyButton.classList.remove('is-copied', 'is-failed');
+          copyButton.textContent = LABELS.copy;
+          status.textContent = '';
+        }, RESET_DELAY);
+      }
 
-            // Reset after a certain time
-            setTimeout(function () {
-              copyButton.removeAttribute('title'); // Remove title attribute
-              copyButton.classList.remove('copy-error');
-            }, 2000);
-          });
-        });
-
-        // Set click event for wrap toggle button
-        wrapToggleButton.addEventListener('click', function () {
-          codeBlock.classList.toggle('nowrap');
-          codeBlock.classList.toggle('wrap');
-
-          // Update button tooltip
-          if (codeBlock.classList.contains('nowrap')) {
-            wrapToggleButton.title = 'Enable Wrap';
-          } else {
-            wrapToggleButton.title = 'Disable Wrap';
-          }
+      copyButton.addEventListener('click', function () {
+        // The language label is a pseudo element and the buttons are outside <pre>, so this is the code only
+        const code = pre.textContent;
+        if (!navigator.clipboard) {
+          showResult(false);
+          return;
+        }
+        navigator.clipboard.writeText(code).then(function () {
+          showResult(true);
+        }, function () {
+          showResult(false);
         });
       });
-    });
+    }
+
+    function enhanceAll() {
+      // Hatena's ASCII art (pre.lang-aa) is not code
+      document.querySelectorAll('.entry-content pre.code:not(.lang-aa)').forEach(function (pre) {
+        // Already enhanced (the script may run more than once)
+        if (pre.parentElement && pre.parentElement.classList.contains('code-block')) {
+          return;
+        }
+        enhance(pre);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', enhanceAll);
+    } else {
+      enhanceAll();
+    }
   })();
 </script>
 
-<style>
-  /* コードブロックのラッパー要素 */
-  .code-block-wrapper {
-    position: relative;
-    margin: 1em 0;
-  }
-
-  /* コードブロック自体のスタイル調整 */
-  .code-block-wrapper pre.code {
-    margin: 0;
-  }
-
-  /* 折り返しなしのコードブロック (デフォルト) */
-  .code-block-wrapper pre.code.nowrap {
-    white-space: pre;
-    overflow-x: auto;
-    text-overflow: initial;
-  }
-
-  /* 折り返しありのコードブロック */
-  .code-block-wrapper pre.code.wrap {
-    white-space: pre-wrap;
-    overflow-x: visible;
-  }
-
-  /* コードブロックボタン共通のスタイル */
-  .code-copy-button,
-  .code-wrap-toggle {
-    position: absolute;
-    top: 0rem;
-    margin: 15px;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    background-color: var(--bg-code-light, #1a2737);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 18px 18px;
-    border: 1px solid var(--bg-code-light, #1a2737);
-    border-radius: 4px;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s, background-color 0.2s;
-  }
-
-  /* コピーボタンのスタイル */
-  .code-copy-button {
-    right: 0rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='rgba(255, 255, 255, 0.75)' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill-rule='evenodd' d='M2 11 V3.5 A1.5 1.5 0 0 1 3.5 2 H10' /%3E%3Crect fill-rule='evenodd' x='5' y='5' width='9' height='9' rx='1.5' /%3E%3C/svg%3E");
-  }
-
-  /* 折り返し切り替えボタンのスタイル */
-  .code-wrap-toggle {
-    right: 2.5rem;
-    /* コピーボタンの左に配置 */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.75)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='7 8 3 12 7 16'/%3E%3Cpolyline points='17 8 21 12 17 16'/%3E%3Cline x1='3' y1='12' x2='21' y2='12'/%3E%3C/svg%3E");
-  }
-
-  @media (max-width: 768px) {
-
-    .code-copy-button,
-    .code-wrap-toggle {
-      width: 24px;
-      height: 24px;
-      background-size: 16px 16px;
-    }
-  }
-
-  /* ホバー時のスタイル */
-  .code-copy-button:hover,
-  .code-wrap-toggle:hover {
-    opacity: 1 !important;
-    background-color: var(--bg-code-light, #1a2737);
-  }
-
-  /* フォーカス時のスタイル */
-  .code-copy-button:focus,
-  .code-wrap-toggle:focus {
-    outline: none;
-  }
-
-  /* コードブロックラッパーホバー時にボタンを表示 */
-  .code-block-wrapper:hover .code-copy-button,
-  .code-block-wrapper:hover .code-wrap-toggle {
-    opacity: 0.75;
-  }
-
-  /* ツールチップのスタイル */
-  .code-copy-button[title]:hover::after,
-  .code-wrap-toggle[title]:hover::after {
-    content: attr(title);
-    position: absolute;
-    top: -40px;
-    right: 0;
-    padding: 4px 8px;
-    background-color: var(--bg-code-light, #1a2737);
-    color: var(--text-code-tooltip, #c9d1d9);
-    border-radius: 4px;
-    font-size: 12px;
-    white-space: nowrap;
-    z-index: 10;
-  }
-</style>
-
-<!-- ダークモード機能のJavaScriptコード -->
+<!-- ダークモードの切り替え機能のJavaScriptコード -->
 <script>
-  // このスクリプトはダークモードボタンを実装します
+  // このスクリプトは、読者がライト・ダーク・自動(OSの設定)を選べるボタンをブログのヘッダーに置きます。選んだモードはブラウザに記憶します
+  // 「設定」→「詳細設定」→「headに要素を追加」に貼り付けると、ページが描かれる前に選んだモードを反映します
+  /**
+   * Script to let readers choose light, dark, or automatic (OS setting) colors.
+   * The theme switches colors with the --swifty-color-mode custom property on <html>;
+   * this script sets it from the reader's choice and adds a button to the blog header.
+   */
   (function () {
-    // Skip processing if darkModeJs already exists
-    if (window.darkModeJs) {
-      console.log('Dark mode JS already initialized');
+    'use strict';
+
+    const root = document.documentElement;
+
+    // Run once even if the snippet is pasted twice
+    if (root.hasAttribute('data-swifty-color-mode-toggle')) {
       return;
     }
+    // Tells the theme CSS to keep room for the button in the header from the start, so adding it later does not move the title
+    root.setAttribute('data-swifty-color-mode-toggle', '');
 
-    // Add attribute to enable dark mode
-    document.documentElement.setAttribute('data-enable-dark-mode', 'true');
+    // Remember the reader's choice across pages
+    const STORAGE_KEY = 'swifty-color-mode';
+    const MODES = ['light', 'dark', 'auto'];
 
-    // Theme constants
-    const THEMES = {
-      LIGHT: 'light',
-      DARK: 'dark',
-      AUTO: 'auto'
-    };
-
-    // SVG icon definitions
     const ICONS = {
-      SUN: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
-      MOON: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
-      MONITOR: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
+      light: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>',
+      dark: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+      auto: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
     };
 
-    // Local storage key
-    const STORAGE_KEY = 'codefocus-theme-preference';
+    const LABELS = {
+      light: 'ライト',
+      dark: 'ダーク',
+      auto: '自動',
+    };
 
-    // Get current theme
-    function getCurrentTheme() {
-      const savedTheme = localStorage.getItem(STORAGE_KEY);
-      if (savedTheme && [THEMES.LIGHT, THEMES.DARK, THEMES.AUTO].includes(savedTheme)) {
-        return savedTheme;
+    function storedMode() {
+      try {
+        const mode = localStorage.getItem(STORAGE_KEY);
+        return MODES.indexOf(mode) >= 0 ? mode : 'auto';
+      } catch (e) {
+        // Storage can be unavailable (e.g. blocked cookies); follow the blog's default
+        return 'auto';
       }
-      return THEMES.AUTO; // Default: match system settings
     }
 
-    // Apply theme
-    function applyTheme(theme) {
-      if (theme === THEMES.AUTO) {
-        // Remove data-theme attribute to match system settings
-        document.documentElement.removeAttribute('data-theme');
+    function saveMode(mode) {
+      try {
+        localStorage.setItem(STORAGE_KEY, mode);
+      } catch (e) {
+        // Without storage the choice still applies on this page
+      }
+    }
+
+    // A choice on <html> (inline style) wins over the blog's design CSS. Automatic removes it and
+    // falls back to the blog's default: the design CSS setting if any, otherwise the OS setting
+    function applyMode(mode) {
+      if (mode === 'auto') {
+        root.style.removeProperty('--swifty-color-mode');
       } else {
-        // Set data-theme attribute for explicit theme
-        document.documentElement.setAttribute('data-theme', theme);
-      }
-
-      // Save to local storage
-      localStorage.setItem(STORAGE_KEY, theme);
-    }
-
-    // Get icon corresponding to current theme
-    function getIconForTheme(theme) {
-      switch (theme) {
-        case THEMES.LIGHT:
-          return ICONS.SUN;
-        case THEMES.DARK:
-          return ICONS.MOON;
-        case THEMES.AUTO:
-        default:
-          return ICONS.MONITOR;
+        root.style.setProperty('--swifty-color-mode', mode);
       }
     }
 
-    // Create theme switcher button container
-    function createThemeSwitcher() {
-      // Container element
+    // Apply before the page is painted (place the snippet in <head> to avoid a flash of the other colors)
+    let current = storedMode();
+    applyMode(current);
+
+    function createToggle() {
       const container = document.createElement('div');
-      container.className = 'theme-toggle-container';
+      container.className = 'color-mode-toggle';
 
-      // Main button
-      const mainButton = document.createElement('button');
-      mainButton.className = 'theme-toggle-main';
-      mainButton.setAttribute('aria-label', 'Toggle theme');
-      mainButton.setAttribute('aria-expanded', 'false');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'color-mode-toggle-button';
+      button.setAttribute('aria-expanded', 'false');
+      button.setAttribute('aria-controls', 'color-mode-toggle-menu');
 
-      // Set icon based on current theme
-      const currentIcon = document.createElement('span');
-      currentIcon.className = 'current-mode-icon';
-      currentIcon.innerHTML = getIconForTheme(getCurrentTheme());
-      mainButton.appendChild(currentIcon);
+      const menu = document.createElement('div');
+      menu.className = 'color-mode-toggle-menu';
+      menu.id = 'color-mode-toggle-menu';
+      menu.hidden = true;
 
-      // Dropdown
-      const dropdown = document.createElement('div');
-      dropdown.className = 'theme-toggle-dropdown';
-
-      // Dropdown options
-      const options = [
-        { theme: THEMES.LIGHT, icon: ICONS.SUN, label: 'ライトモード', tooltip: 'ライトモードに固定' },
-        { theme: THEMES.DARK, icon: ICONS.MOON, label: 'ダークモード', tooltip: 'ダークモードに固定' },
-        { theme: THEMES.AUTO, icon: ICONS.MONITOR, label: '自動切り替え', tooltip: 'システム設定に合わせる' }
-      ];
-
-      // Create option buttons
-      options.forEach(option => {
-        const button = document.createElement('button');
-        button.className = 'theme-toggle-option';
-        button.setAttribute('aria-label', option.tooltip);
-        button.setAttribute('data-theme', option.theme);
-        button.title = option.tooltip;
-
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'theme-icon';
-        iconSpan.innerHTML = option.icon;
-        button.appendChild(iconSpan);
-
-        const labelSpan = document.createElement('span');
-        labelSpan.className = 'theme-label';
-        labelSpan.textContent = option.label;
-        button.appendChild(labelSpan);
-
-        // Add active class if matches current theme
-        if (getCurrentTheme() === option.theme) {
-          button.classList.add('active');
-        }
-
-        // Click event
-        button.addEventListener('click', (e) => {
-          e.stopPropagation();
-
-          // Apply theme
-          applyTheme(option.theme);
-
-          // Close dropdown
-          toggleDropdown(false);
-
-          // Update main button icon
-          currentIcon.innerHTML = option.icon;
-
-          // Update active state
-          dropdown.querySelectorAll('.theme-toggle-option').forEach(btn => {
-            btn.classList.remove('active');
-          });
-          button.classList.add('active');
+      const options = MODES.map(function (mode) {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'color-mode-toggle-option';
+        option.setAttribute('data-mode', mode);
+        option.innerHTML = ICONS[mode];
+        const label = document.createElement('span');
+        label.textContent = mode === 'auto' ? '自動(OSの設定)' : LABELS[mode];
+        option.appendChild(label);
+        option.addEventListener('click', function () {
+          current = mode;
+          applyMode(mode);
+          saveMode(mode);
+          update();
+          close();
+          button.focus();
         });
-
-        dropdown.appendChild(button);
+        menu.appendChild(option);
+        return option;
       });
 
-      // Main button click event.
-      // Deliberately let the event bubble to document. The outside-click handler below already
-      // excludes the container via contains(), so stopping propagation buys nothing here - it
-      // only prevents the TOC button script's outside-click handler from closing the floating
-      // TOC, leaving both floating panels open on top of each other.
-      mainButton.addEventListener('click', () => {
-        toggleDropdown();
-      });
-
-      // Toggle dropdown visibility
-      function toggleDropdown(force) {
-        const isVisible = typeof force !== 'undefined' ? force : !dropdown.classList.contains('show');
-        dropdown.classList.toggle('show', isVisible);
-        mainButton.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
+      // Show the current choice on the button and in the menu
+      function update() {
+        button.innerHTML = ICONS[current];
+        button.setAttribute('aria-label', '表示モード: ' + LABELS[current]);
+        options.forEach(function (option) {
+          option.setAttribute('aria-pressed', String(option.getAttribute('data-mode') === current));
+        });
       }
 
-      // Close dropdown on document click
-      document.addEventListener('click', (e) => {
-        if (!container.contains(e.target)) {
-          toggleDropdown(false);
+      function open() {
+        menu.hidden = false;
+        button.setAttribute('aria-expanded', 'true');
+      }
+
+      function close() {
+        menu.hidden = true;
+        button.setAttribute('aria-expanded', 'false');
+      }
+
+      button.addEventListener('click', function () {
+        if (menu.hidden) {
+          open();
+        } else {
+          close();
         }
       });
 
-      // Close dropdown on Escape key
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && dropdown.classList.contains('show')) {
-          toggleDropdown(false);
+      // Close on a click outside, and on Escape (returning focus to the button)
+      document.addEventListener('click', function (e) {
+        if (!menu.hidden && !container.contains(e.target)) {
+          close();
+        }
+      });
+      container.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !menu.hidden) {
+          close();
+          button.focus();
+        }
+      });
+      // Close when focus leaves the button and the menu
+      container.addEventListener('focusout', function (e) {
+        if (!menu.hidden && e.relatedTarget && !container.contains(e.relatedTarget)) {
+          close();
         }
       });
 
-      // Assemble components
-      container.appendChild(mainButton);
-      container.appendChild(dropdown);
-
+      update();
+      container.append(button, menu);
       return container;
     }
 
-    // Initialization
-    function initialize() {
-      // Apply current theme
-      applyTheme(getCurrentTheme());
-
-      // Add theme switcher UI
-      const switcher = createThemeSwitcher();
-      document.body.appendChild(switcher);
-
-      // Monitor system color setting changes (to react in auto mode)
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (getCurrentTheme() === THEMES.AUTO) {
-          applyTheme(THEMES.AUTO); // Reapply to reflect changes
-        }
-      });
-    }
-
-    // Initialize after DOMContentLoaded
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initialize);
-    } else {
-      initialize();
-    }
-
-    // Register to global object
-    window.darkModeJs = {
-      applyTheme,
-      getCurrentTheme,
-    };
-  })();
-</script>
-
-<!-- タグクラウド機能のJavaScriptコード -->
-<script>
-  // タグクラウドの実装 - カテゴリー要素のフォントサイズを記事数に基づいて調整
-  (function () {
-    // Font size variation range
-    const RANGE = 13;
-
-    // Initialization function
-    function initCategoryCloud() {
-      // Get category list
-      const categoryLinks = document.querySelectorAll('.hatena-module-category ul li a');
-      if (!categoryLinks.length) return;
-
-      // Extract article count data
-      const counts = [];
-      categoryLinks.forEach(link => {
-        const match = link.textContent.match(/\((\d+)\)/);
-        if (match && match[1]) {
-          counts.push(parseInt(match[1], 10));
-        } else {
-          counts.push(0);
-        }
-      });
-
-      // Calculate minimum and maximum values
-      const min = Math.min(...counts);
-      const max = Math.max(...counts);
-
-      // Calculate scaling factor based on square root range
-      const sqrtMin = Math.sqrt(min);
-      const sqrtMax = Math.sqrt(max);
-      const factor = RANGE / (sqrtMax - sqrtMin || 1); // Prevent division by zero
-
-      // Apply styles and classes to each category link
-      categoryLinks.forEach((link, i) => {
-        const count = counts[i];
-
-        // Calculate font size level (for size class)
-        const levelRaw = (Math.sqrt(count) - sqrtMin) * factor;
-        // Convert to 1-10 scale (enables finer granularity of size changes)
-        const sizeClass = Math.max(1, Math.min(10, Math.ceil(levelRaw * 10 / RANGE)));
-
-        // Remove article count in parentheses from text
-        const text = link.textContent.trim();
-        const cleanText = text.replace(/\s*\(\d+\)\s*$/, '');
-
-        // Apply classes
-        link.setAttribute('title', text); // Set original text as tooltip
-        link.textContent = cleanText;
-
-        // Add category size class (for CSS styling)
-        link.classList.add(`category-size-${sizeClass}`);
-        link.parentElement.classList.add('category-cloud-item');
-      });
-
-      // Add tag cloud class to parent element
-      const categoryContainer = document.querySelector('.hatena-module-category ul');
-      if (categoryContainer) {
-        categoryContainer.classList.add('category-cloud');
+    // Put the button at the end of the blog header as soon as the header is parsed
+    // (after the title, so it comes after the title in the tab order)
+    function insert() {
+      const header = document.getElementById('blog-title');
+      const inner = document.getElementById('blog-title-inner');
+      const parsed = header && (header.nextElementSibling || document.readyState !== 'loading');
+      if (!parsed || !inner) {
+        return document.readyState !== 'loading';
       }
+      if (!inner.querySelector(':scope > .color-mode-toggle')) {
+        inner.appendChild(createToggle());
+      }
+      return true;
     }
 
-    // Execute after page load completes
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initCategoryCloud);
-    } else {
-      initCategoryCloud();
+    if (!insert()) {
+      const observer = new MutationObserver(function () {
+        if (insert()) {
+          observer.disconnect();
+        }
+      });
+      observer.observe(root, { childList: true, subtree: true });
+      document.addEventListener('DOMContentLoaded', function () {
+        observer.disconnect();
+        insert();
+      });
     }
   })();
 </script>
 
-<!-- 目次ボタン用のJavaScriptコード -->
+<!-- 目次の開閉機能のJavaScriptコード -->
 <script>
-  // このスクリプトは目次ボタンと目次表示を実装します
+  // このスクリプトは記事内の目次を開け閉めできるようにします。閉じたかどうかはブラウザに記憶します
+  // 本文の横の長い目次は、いま読んでいる見出しが見える位置まで目次の中をスクロールします
+  /**
+   * Script to make the table of contents in Hatena Blog articles collapsible,
+   * and to keep the heading being read visible in a long table of contents
+   */
   (function () {
     'use strict';
 
-    // Constants
-    const CONSTANTS = {
-      WIDE_SCREEN_WIDTH: 1540,      // Minimum width for auto-expand mode
-      HEADING_ACTIVE_OFFSET: 100,    // Offset for determining active heading
-      RESIZE_DEBOUNCE: 250,          // Debounce time for resize events (ms)
-      SCROLL_THROTTLE: 100           // Throttle time for scroll events (ms)
-    };
+    // Remember whether the reader closed the table of contents, across pages
+    const STORAGE_KEY = 'swifty-toc-collapsed';
 
-    // Execute after DOM is loaded
-    document.addEventListener('DOMContentLoaded', function () {
-      // Get all articles with table of contents
-      const allEntriesWithToc = Array.from(document.querySelectorAll('.entry-content')).filter(entry =>
-        entry.querySelector('.table-of-contents')
-      );
+    // Space kept between the current link and the edges of the visible part of the table of contents
+    const FOLLOW_MARGIN = 32;
 
-      if (allEntriesWithToc.length === 0) return; // Do nothing if no table of contents
+    function isCollapsed() {
+      try {
+        return localStorage.getItem(STORAGE_KEY) === 'true';
+      } catch (e) {
+        // Storage can be unavailable (e.g. blocked cookies); start open
+        return false;
+      }
+    }
 
-      // Create TOC button
-      const tocButton = document.createElement('button');
-      tocButton.className = 'toc-button';
+    function saveCollapsed(collapsed) {
+      try {
+        localStorage.setItem(STORAGE_KEY, String(collapsed));
+      } catch (e) {
+        // Without storage the toggle still works on this page
+      }
+    }
 
-      // Create element containing TOC text and icon
-      const buttonText = document.createElement('span');
-      buttonText.className = 'toc-button-text';
-      buttonText.textContent = '目次';
+    // Wrap the list Hatena outputs in <details>, so the browser handles opening and closing
+    // and tells assistive technology whether it is open. The label text comes from the theme's CSS (--toc-label)
+    function enhance(list) {
+      const panel = document.createElement('details');
+      panel.className = 'toc-panel';
+      panel.open = !isCollapsed();
 
-      // Create icon element
-      const buttonIcon = document.createElement('span');
-      buttonIcon.className = 'toc-button-icon';
+      const summary = document.createElement('summary');
+      summary.className = 'toc-panel-summary';
+      const label = document.createElement('span');
+      label.className = 'toc-panel-label';
+      summary.appendChild(label);
 
-      // Add elements to button
-      tocButton.appendChild(buttonText);
-      tocButton.appendChild(buttonIcon);
+      list.before(panel);
+      panel.append(summary, list);
 
-      // Create floating TOC container
-      const floatingToc = document.createElement('div');
-      floatingToc.className = 'floating-toc';
-
-      // Create button to scroll to page top
-      const topButton = document.createElement('button');
-      topButton.className = 'page-top-button';
-      topButton.textContent = 'ページトップへ';
-      topButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        // Close TOC
-        floatingToc.classList.remove('show');
-        tocButton.classList.remove('active');
-      });
-
-      // Container for page top button
-      const topButtonContainer = document.createElement('div');
-      topButtonContainer.className = 'page-top-button-container';
-      topButtonContainer.appendChild(topButton);
-
-      // Container for TOC list (will be updated dynamically)
-      const tocListContainer = document.createElement('div');
-      tocListContainer.className = 'toc-list-container';
-
-      // Add elements to floating TOC
-      floatingToc.appendChild(topButtonContainer);
-      floatingToc.appendChild(tocListContainer);
-
-      // Add elements to body
-      document.body.appendChild(tocButton);
-      document.body.appendChild(floatingToc);
-
-      // Set up event delegation for TOC links to prevent memory leaks
-      // This handles clicks on all current and future TOC links
-      tocListContainer.addEventListener('click', function (e) {
-        const link = e.target.closest('a');
-        if (link && !isWideScreen()) {
-          floatingToc.classList.remove('show');
-          tocButton.classList.remove('active');
+      // Setting open above also fires toggle, so save only when the reader changed the remembered state
+      panel.addEventListener('toggle', function () {
+        if (panel.open === isCollapsed()) {
+          saveCollapsed(!panel.open);
         }
       });
 
-      // Track current active entry
-      let currentActiveEntry = null;
-      let currentTocLinks = [];
-      let currentHeadingMap = new Map();
+      followCurrent(panel, summary);
+    }
 
-      // Function to get the currently visible entry
-      function getCurrentVisibleEntry() {
-        const viewportCenter = window.innerHeight / 2;
-
-        for (const entry of allEntriesWithToc) {
-          const rect = entry.getBoundingClientRect();
-          // Check if entry is visible in viewport
-          if (rect.top < viewportCenter && rect.bottom > 0) {
-            return entry;
-          }
-        }
-
-        // If no entry is in center, return the first visible one
-        for (const entry of allEntriesWithToc) {
-          const rect = entry.getBoundingClientRect();
-          if (rect.bottom > 0) {
-            return entry;
-          }
-        }
-
-        return allEntriesWithToc[0];
+    // Beside the article, the theme caps the table of contents at the screen height and scrolls it inside.
+    // The browser marks the link of the heading being read (:target-current) but does not scroll the
+    // table of contents to it, so the mark can be hidden below the visible part. When the page scrolls,
+    // scroll only the table of contents (never the page) to bring the current link into view
+    function followCurrent(panel, summary) {
+      let supported = false;
+      try {
+        supported = CSS.supports('selector(:target-current)');
+      } catch (e) {
+        // Without the mark there is nothing to follow
+      }
+      if (!supported) {
+        return;
       }
 
-      // Function to update TOC content based on current entry
-      function updateTocContent(entry) {
-        if (!entry || entry === currentActiveEntry) return;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let scheduled = false;
+      // The link a smooth scroll is heading for, so it is not restarted on every frame
+      let following = null;
 
-        currentActiveEntry = entry;
-
-        // Get table of contents for this entry
-        const tableOfContents = entry.querySelector('.table-of-contents');
-        if (!tableOfContents) return;
-
-        // Clear and update TOC list
-        tocListContainer.innerHTML = '';
-        const tocClone = tableOfContents.cloneNode(true);
-        tocClone.classList = 'floating-toc-list';
-        tocListContainer.appendChild(tocClone);
-
-        // Update TOC links
-        currentTocLinks = Array.from(floatingToc.querySelectorAll('a'));
-
-        // Update heading map
-        currentHeadingMap.clear();
-        currentTocLinks.forEach(link => {
-          const href = link.getAttribute('href');
-          if (href && href.startsWith('#')) {
-            const targetId = href.substring(1);
-            const targetHeading = document.getElementById(targetId);
-            if (targetHeading) {
-              currentHeadingMap.set(targetHeading, link);
-            }
-          }
-        });
-      }
-
-      // Function to check if screen width is wide enough for auto-expand
-      function isWideScreen() {
-        return window.innerWidth >= CONSTANTS.WIDE_SCREEN_WIDTH;
-      }
-
-      // Function to check if any entry with a table of contents is on screen.
-      // The button is only useful while such an entry is in view.
-      function isAnyEntryVisible() {
-        return allEntriesWithToc.some(entry => {
-          const rect = entry.getBoundingClientRect();
-          return rect.top < window.innerHeight && rect.bottom > 0;
-        });
-      }
-
-      // Function to scroll the TOC panel (never the page) so the given link is inside its visible area.
-      // Element.scrollIntoView() is not used here: it also scrolls the page. When the panel is not fixed
-      // to the screen (e.g. this script is left on a blog whose theme has no styles for the panel, so the
-      // panel sits at the bottom of the page), that drags the page down to the panel on every scroll.
-      function scrollTocToLink(link) {
-        // Nothing to do unless the panel scrolls inside
-        if (floatingToc.scrollHeight <= floatingToc.clientHeight) return;
-
-        const visibleTop = floatingToc.getBoundingClientRect().top + floatingToc.clientTop;
-        const visibleBottom = visibleTop + floatingToc.clientHeight;
-        const linkRect = link.getBoundingClientRect();
-
-        // Scroll only as far as needed, and only when the link is outside the visible area
-        let delta = 0;
-        if (linkRect.top < visibleTop) {
-          delta = linkRect.top - visibleTop;
-        } else if (linkRect.bottom > visibleBottom) {
-          delta = linkRect.bottom - visibleBottom;
+      function update() {
+        scheduled = false;
+        // Not open, or not scrolling inside (in the article on narrow screens, or short enough to fit)
+        if (!panel.open || panel.scrollHeight <= panel.clientHeight) {
+          return;
         }
-        if (Math.abs(delta) >= 1) {
-          floatingToc.scrollBy({ top: delta, behavior: 'smooth' });
-        }
-      }
-
-      // Function to update TOC display based on screen width
-      function updateTocDisplay() {
-        if (isWideScreen()) {
-          // Auto-expand on wide screens
-          floatingToc.classList.add('show', 'auto-expanded');
-          tocButton.classList.add('active');
-          // Hide button on wide screens as TOC is always visible
-          tocButton.style.display = 'none';
-        } else {
-          // Close TOC and remove auto-expand class on smaller screens
-          floatingToc.classList.remove('auto-expanded', 'show');
-          tocButton.classList.remove('active');
-          // Show button on smaller screens.
-          // Clear the inline value instead of setting 'block' so the stylesheet keeps control
-          // of the layout (display: inline-flex with align-items: center).
-          tocButton.style.display = isAnyEntryVisible() ? '' : 'none';
-        }
-      }
-
-      // Set click event.
-      // Deliberately let the event bubble to document. The outside-click handler below already
-      // excludes this button and the panel via contains(), so stopping propagation buys nothing
-      // here - it only prevents the dark mode script's outside-click handler from closing its
-      // dropdown, leaving both floating panels open on top of each other.
-      tocButton.addEventListener('click', function (e) {
-        e.preventDefault();
-
-        // Don't allow toggle on wide screens (always show)
-        if (!isWideScreen()) {
-          floatingToc.classList.toggle('show');
-          tocButton.classList.toggle('active');
-        }
-      });
-
-      // Handle window resize
-      let resizeTimer;
-      window.addEventListener('resize', function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () {
-          updateTocDisplay();
-        }, CONSTANTS.RESIZE_DEBOUNCE);
-      });
-
-      // Initial check on page load
-      updateTocDisplay();
-
-      // Initialize TOC content with first visible entry
-      updateTocContent(getCurrentVisibleEntry());
-
-      // Close TOC when clicking outside (except on wide screens)
-      document.addEventListener('click', function (event) {
-        if (!isWideScreen() && !floatingToc.contains(event.target) && event.target !== tocButton && !tocButton.contains(event.target)) {
-          floatingToc.classList.remove('show');
-          tocButton.classList.remove('active');
-        }
-      });
-
-      // Set scroll event with throttling for performance
-      let scrollTimer = null;
-
-      window.addEventListener('scroll', function () {
-        // Throttle scroll events for performance
-        if (scrollTimer !== null) return;
-
-        scrollTimer = setTimeout(function () {
-          scrollTimer = null;
-
-          // Get currently visible entry
-          const visibleEntry = getCurrentVisibleEntry();
-
-          // Update TOC content if entry changed
-          updateTocContent(visibleEntry);
-
-          // Check if any entry with TOC is visible
-          const anyEntryVisible = isAnyEntryVisible();
-
-          // Control TOC button visibility based on entry visibility (non-wide screens only)
-          // Wide screens: Always visible (controlled by updateTocDisplay())
-          if (!isWideScreen()) {
-            if (anyEntryVisible) {
-              // Clear the inline value so the stylesheet keeps control of the layout
-              tocButton.style.display = '';
-            } else {
-              tocButton.style.display = 'none';
-              floatingToc.classList.remove('show'); // Close TOC in non-visible area
-              tocButton.classList.remove('active'); // Reset button state
-            }
-          }
-
-          // Detect and highlight currently visible heading in current entry
-          if (currentActiveEntry && anyEntryVisible) {
-            // Clear all active classes
-            currentTocLinks.forEach(link => {
-              link.classList.remove('active');
-              // Remove active class from parent li element
-              if (link.parentElement) {
-                link.parentElement.classList.remove('active');
-              }
-            });
-
-            // Get headings from current entry only
-            const headings = Array.from(currentActiveEntry.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-
-            // Detect currently visible heading
-            // Get the heading closest to the top of the screen among visible headings
-            let activeHeading = null;
-            let minDistance = Infinity;
-
-            headings.forEach(heading => {
-              const rect = heading.getBoundingClientRect();
-              // Check if element is visible on screen or just above
-              if (rect.top <= CONSTANTS.HEADING_ACTIVE_OFFSET) {
-                const distance = Math.abs(rect.top);
-                if (distance < minDistance) {
-                  minDistance = distance;
-                  activeHeading = heading;
-                }
-              }
-            });
-
-            // Activate corresponding TOC link
-            if (activeHeading && currentHeadingMap.has(activeHeading)) {
-              const activeLink = currentHeadingMap.get(activeHeading);
-              activeLink.classList.add('active');
-              // Add active class to parent li element
-              if (activeLink.parentElement) {
-                activeLink.parentElement.classList.add('active');
-              }
-
-              // Auto-scroll TOC to show active item if it's outside the panel's visible area
-              scrollTocToLink(activeLink);
-            }
-          }
-        }, CONSTANTS.SCROLL_THROTTLE);
-      });
-    });
-  })();
-</script>
-<!-- 目次ボタン用のスタイルを適用するためのダミー要素 -->
-<div class="js-table-of-contents-script"></div>
-
-<!-- 記事中の目次開閉のJavaScriptコード -->
-<script>
-  // このスクリプトははてなブログ記事内の目次（table-of-contents）の開閉表示を実装します
-  (function () {
-    'use strict';
-
-    document.addEventListener('DOMContentLoaded', function () {
-      // Search for table of contents in article
-      const tocElements = document.querySelectorAll('.table-of-contents');
-
-      tocElements.forEach(function (toc) {
-        // Skip already processed TOC
-        if (toc.classList.contains('toc-processed')) {
+        const link = panel.querySelector('.table-of-contents a:target-current');
+        if (!link || link === following) {
           return;
         }
 
-        // Wrap TOC with container
-        const tocContainer = document.createElement('div');
-        tocContainer.className = 'toc-container';
-        toc.parentNode.insertBefore(tocContainer, toc);
-        tocContainer.appendChild(toc);
+        // The visible part of the list: below the heading row, and on the screen
+        // (at the end of the article the table of contents scrolls up with it)
+        const top = Math.max(summary.getBoundingClientRect().bottom, 0) + FOLLOW_MARGIN;
+        const bottom = Math.min(panel.getBoundingClientRect().bottom, window.innerHeight) - FOLLOW_MARGIN;
+        const rect = link.getBoundingClientRect();
+        if (bottom <= top || (rect.top >= top && rect.bottom <= bottom)) {
+          return;
+        }
 
-        // Create TOC title
-        const tocTitle = document.createElement('div');
-        tocTitle.className = 'toc-title';
-        tocTitle.innerHTML = '目次 <span class="toc-toggle-icon"></span>';
-        tocContainer.insertBefore(tocTitle, toc);
+        // Put the link in the middle, so the headings before and after it are also visible
+        const max = panel.scrollHeight - panel.clientHeight;
+        const target = Math.min(max, Math.max(0, panel.scrollTop + (rect.top + rect.bottom) / 2 - (top + bottom) / 2));
+        if (Math.abs(target - panel.scrollTop) < 1) {
+          return;
+        }
+        following = link;
+        panel.scrollTo({ top: target, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+      }
 
-        // Wrap TOC content section with div
-        const tocContent = document.createElement('div');
-        tocContent.className = 'toc-content';
-        tocContent.appendChild(toc.cloneNode(true));
-        tocContainer.replaceChild(tocContent, toc);
+      // The browser moves the mark while rendering the frame after the scroll (even scrollend still sees the old one),
+      // so check on the frame after next
+      function schedule() {
+        if (!scheduled) {
+          scheduled = true;
+          requestAnimationFrame(function () {
+            requestAnimationFrame(update);
+          });
+        }
+      }
 
-        // Set state for toggle (default is closed)
-        tocContainer.classList.add('toc-closed');
-
-        // Set click event
-        tocTitle.addEventListener('click', function () {
-          if (tocContainer.classList.contains('toc-open')) {
-            // Close if currently open
-            tocContainer.classList.remove('toc-open');
-            tocContainer.classList.add('toc-closed');
-          } else {
-            // Open if currently closed
-            tocContainer.classList.remove('toc-closed');
-            tocContainer.classList.add('toc-open');
-          }
-        });
-
-        // Mark as processed
-        tocContent.querySelector('.table-of-contents').classList.add('toc-processed');
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('scrollend', schedule);
+      window.addEventListener('resize', schedule);
+      panel.addEventListener('toggle', schedule);
+      // Only forget the link here: checking on the list's own scrollend would pull the list back
+      // while the reader scrolls it by hand. The next page scroll brings the current link back
+      panel.addEventListener('scrollend', function () {
+        following = null;
       });
-    });
+    }
+
+    function convert() {
+      // Only the table of contents placed directly in the article body, the same as the theme's layout
+      document.querySelectorAll('.entry-content > ul.table-of-contents').forEach(function (list) {
+        enhance(list);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      // Wrap the list as soon as it is inserted, before its items are parsed: the parser keeps adding items
+      // to the moved list, and a remembered closed state is applied before the list is ever painted open
+      const observer = new MutationObserver(convert);
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+      document.addEventListener('DOMContentLoaded', function () {
+        observer.disconnect();
+        convert();
+      });
+    } else {
+      convert();
+    }
   })();
 </script>

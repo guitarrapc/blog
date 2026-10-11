@@ -1,24 +1,20 @@
 ---
 title: Hatena Blog
 url: https://tech.guitarracpc.com
-theme: CodeFocus
-theme since: 2024-May-23
+theme: Swifty
+theme since: 2026-Oct-12
 ---
 
 ## Theme
 
-[CodeFocus](https://blog.hatena.ne.jp/-/store/theme/6802418398435013379)
+[Swifty](https://blog.hatena.ne.jp/-/store/theme/14945776032088160769)
 
-https://github.com/guitarrapc/hatenablog-theme-codefocus
+https://github.com/guitarrapc/hatenablog-theme-swifty
 
 ## Sidebar
 
 Order by followings.
 
-* Search (official - 検索)
 * Monthly Archives (official - 月別アーカイブ)
-* Links (official - リンク)
 * Latest Articles (official - 最新記事)
-* Favorite Articles (official - 注目記事)
 * TagCloud (official - カテゴリ)
-* Profile (official)
